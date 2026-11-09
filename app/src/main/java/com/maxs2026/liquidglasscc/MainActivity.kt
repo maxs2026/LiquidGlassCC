@@ -258,8 +258,8 @@ private fun RoundAction(icon: ImageVector, tint: Color, size: androidx.compose.u
 }
 
 @Composable
-private fun ShortcutButton(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Column(Modifier.weight(1f).clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+private fun ShortcutButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Column(modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.15f), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), modifier = Modifier.size(49.dp)) {
             Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = glassWhite, modifier = Modifier.size(21.dp)) }
         }
