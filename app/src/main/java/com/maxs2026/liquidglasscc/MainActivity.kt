@@ -131,7 +131,7 @@ private fun IOSControlCenter() {
                         Spacer(Modifier.weight(1f))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.SkipPrevious, null, tint = mutedGlass, modifier = Modifier.size(20.dp))
-                            Icon(Icons.Default.PlayArrow, null, tint = whiteGlass, modifier = Modifier.size(29.dp))
+                            Icon(Icons.Default.PlayArrow, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
                             Icon(Icons.Default.SkipNext, null, tint = mutedGlass, modifier = Modifier.size(20.dp))
                         }
                     }
@@ -147,14 +147,14 @@ private fun IOSControlCenter() {
                         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                     ) {
                         Row(
-                            Modifier.fillMaxWidth().height(54.dp),
+                            Modifier.fillMaxWidth().height(62.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RoundUtilityCircle(Icons.Default.ScreenRotation, Modifier.weight(1f)) {
+                            RoundUtilityCircle(Icons.Default.ScreenRotation) {
                                 openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS)
                             }
-                            RoundUtilityCircle(Icons.Default.Notifications, Modifier.weight(1f)) {
+                            RoundUtilityCircle(Icons.Default.Notifications) {
                                 openAppNotificationSettings(ctx)
                             }
                         }
@@ -186,7 +186,7 @@ private fun IOSControlCenter() {
                             }
                         }
                     }
-                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.WbSunny, Modifier.width(54.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.WbSunny, Modifier.width(66.dp).fillMaxHeight()) { value ->
                         if (Settings.System.canWrite(ctx)) {
                             brightness = value
                             Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
@@ -195,7 +195,7 @@ private fun IOSControlCenter() {
                             permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + ctx.packageName)))
                         }
                     }
-                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(54.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(66.dp).fillMaxHeight()) { value ->
                         volume = value
                         audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
                     }
@@ -216,7 +216,7 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.11", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.12", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -284,10 +284,10 @@ private fun RoundAction(icon: ImageVector, size: Dp, onClick: () -> Unit) {
 }
 
 @Composable
-private fun RoundUtilityCircle(icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun RoundUtilityCircle(icon: ImageVector, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = modifier.aspectRatio(1f),
+        modifier = Modifier.size(62.dp),
         shape = CircleShape,
         color = Color.White.copy(alpha = 0.16f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f))
@@ -334,7 +334,7 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
     ) {
         Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(32.dp))
             .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.98f), Color(0xFFEAF5FF).copy(alpha = 0.96f), accent.copy(alpha = 0.88f)))))
-        Icon(icon, null, tint = if (icon == Icons.Default.WbSunny) Color(0xFFFFC928) else Color(0xFF16B8D4), modifier = Modifier.padding(bottom = 13.dp).size(22.dp))
+        Icon(icon, null, tint = if (icon == Icons.Default.WbSunny) Color(0xFFFFC928) else Color(0xFF16B8D4), modifier = Modifier.padding(bottom = 28.dp).size(18.dp))
     }
 }
 
