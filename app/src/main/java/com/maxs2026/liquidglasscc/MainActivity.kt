@@ -2,6 +2,9 @@ package com.maxs2026.liquidglasscc
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.hardware.camera2.CameraManager
+import android.os.BatteryManager
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
@@ -67,6 +70,11 @@ private fun IOSControlCenter() {
     var focus by remember { mutableStateOf(false) }
     var rotation by remember { mutableStateOf(false) }
     var airplane by remember { mutableStateOf(false) }
+    var flashlightOn by remember { mutableStateOf(false) }
+    var batteryPercent by remember { mutableIntStateOf(readBattery(ctx)) }
+    val flashlightPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) flashlightOn = setTorch(ctx, true)
+    }
     var askedPermission by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         askedPermission = false
@@ -86,7 +94,7 @@ private fun IOSControlCenter() {
                 Row(Modifier.fillMaxWidth().height(if (compact) 42.dp else 50.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(SimpleDateFormat("h:mm", Locale.getDefault()).format(Date()), color = white, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Text("•••  4G  ▮▮  ▰", color = muted, fontSize = 12.sp)
+                    Text("•••  4G  ▮▮  $batteryPercent%", color = muted, fontSize = 12.sp)
                     Spacer(Modifier.width(8.dp))
                     RoundAction(Icons.Default.PowerSettingsNew, white, 34.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                 }
@@ -173,7 +181,11 @@ private fun IOSControlCenter() {
                 }
 
                 Row(Modifier.weight(0.78f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LongControl("Flashlight", Icons.Default.FlashlightOn, Modifier.weight(1.25f)) { openFlashlightSettings(ctx) }
+                    LongControl(if (flashlightOn) "Flashlight On" else "Flashlight", if (flashlightOn) Icons.Default.FlashlightOn else Icons.Default.FlashlightOff, Modifier.weight(1.25f)) {
+                        if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                            flashlightOn = setTorch(ctx, !flashlightOn)
+                        } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
+                    }
                     RoundAction(Icons.Default.Apps, white, 51.dp) { openCalculator(ctx) }
                     RoundAction(Icons.Default.QrCodeScanner, white, 51.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                     RoundAction(Icons.Default.Timer, white, 51.dp) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
@@ -253,6 +265,22 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
 
 private fun readBrightness(context: Context): Float =
     (Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, 128) / 255f).coerceIn(0.01f, 1f)
+
+private fun readBattery(context: Context): Int {
+    val manager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+    return manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).coerceIn(0, 100)
+}
+
+private fun setTorch(context: Context, enabled: Boolean): Boolean {
+    return try {
+        val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val id = manager.cameraIdList.firstOrNull { cameraId ->
+            manager.getCameraCharacteristics(cameraId).get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+        } ?: return false
+        manager.setTorchMode(id, enabled)
+        enabled
+    } catch (_: Exception) { false }
+}
 
 private fun openFlashlightSettings(context: Context) {
     try { context.startActivity(Intent("android.settings.FLASHLIGHT_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
