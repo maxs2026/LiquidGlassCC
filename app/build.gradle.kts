@@ -10,8 +10,8 @@ android {
         applicationId = "com.maxs2026.liquidglasscc"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "1.15"
+        versionCode = 13
+        versionName = "1.12"
     }
     buildFeatures { compose = true }
     compileOptions {
