@@ -89,7 +89,7 @@ private fun IOSControlCenter() {
     MaterialTheme(colorScheme = darkColorScheme()) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val compact = maxHeight < 760.dp
-            val contentWidth = maxWidth * 0.64f
+            val contentWidth = maxWidth * 0.82f
             val panelSize = (contentWidth - 12.dp) / 2
             Box(Modifier.fillMaxSize().background(
                 Brush.linearGradient(listOf(Color(0xFF090B12), Color(0xFF252B37), Color(0xFF111722), Color(0xFF080A10)))
@@ -138,16 +138,16 @@ private fun IOSControlCenter() {
                 }
 
                 Row(
-                    Modifier.fillMaxWidth().height(132.dp),
+                    Modifier.fillMaxWidth().height(panelSize),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(
                         Modifier.weight(1f).fillMaxHeight(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                     ) {
                         Row(
-                            Modifier.fillMaxWidth().height(54.dp),
+                            Modifier.fillMaxWidth().height(62.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -186,7 +186,7 @@ private fun IOSControlCenter() {
                             }
                         }
                     }
-                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.WbSunny, Modifier.width(52.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.WbSunny, Modifier.width(66.dp).fillMaxHeight()) { value ->
                         if (Settings.System.canWrite(ctx)) {
                             brightness = value
                             Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
@@ -195,28 +195,28 @@ private fun IOSControlCenter() {
                             permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + ctx.packageName)))
                         }
                     }
-                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(52.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(66.dp).fillMaxHeight()) { value ->
                         volume = value
                         audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
                     }
                 }
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ToolCircle(Icons.Default.FlashlightOn, Modifier.weight(1f), active = flashlightOn) {
+                    ToolCircle(Icons.Default.FlashlightOn, "Flashlight", Modifier.weight(1f), active = flashlightOn) {
                         if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             flashlightOn = setTorch(ctx, !flashlightOn)
                         } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
                     }
-                    ToolCircle(Icons.Default.CameraAlt, Modifier.weight(1f)) { openCamera(ctx) }
-                    ToolCircle(Icons.Default.ScreenShare, Modifier.weight(1f), accent = Color(0xFF54C98B)) {
+                    ToolCircle(Icons.Default.CameraAlt, "Camera", Modifier.weight(1f)) { openCamera(ctx) }
+                    ToolCircle(Icons.Default.ScreenShare, "Screen cast", Modifier.weight(1f), accent = Color(0xFF54C98B)) {
                         openSettings(ctx, Settings.ACTION_CAST_SETTINGS)
                     }
-                    ToolCircle(Icons.Default.QrCodeScanner, Modifier.weight(1f), accent = Color(0xFFEC719A)) {
+                    ToolCircle(Icons.Default.QrCodeScanner, "QR scanner", Modifier.weight(1f), accent = Color(0xFFEC719A)) {
                         openSettings(ctx, Settings.ACTION_SETTINGS)
                     }
                 }
 
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.15", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.12", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -287,13 +287,13 @@ private fun RoundAction(icon: ImageVector, size: Dp, onClick: () -> Unit) {
 private fun RoundUtilityCircle(icon: ImageVector, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(54.dp),
+        modifier = Modifier.size(62.dp),
         shape = CircleShape,
         color = Color.White.copy(alpha = 0.16f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f))
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(22.dp))
+            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(29.dp))
         }
     }
 }
@@ -311,13 +311,14 @@ private fun RoundUtility(icon: ImageVector, label: String, modifier: Modifier = 
 }
 
 @Composable
-private fun ToolCircle(icon: ImageVector, modifier: Modifier = Modifier, active: Boolean = false, accent: Color = Color(0xFF76BFFF), onClick: () -> Unit) {
-    Box(modifier.aspectRatio(1f).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+private fun ToolCircle(icon: ImageVector, label: String, modifier: Modifier = Modifier, active: Boolean = false, accent: Color = Color(0xFF76BFFF), onClick: () -> Unit) {
+    Column(modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Box(Modifier.size(54.dp).shadow(9.dp, CircleShape).clip(CircleShape)
             .background(Brush.linearGradient(if (active) listOf(accent, Color(0xFF1767B2)) else listOf(accent.copy(alpha = 0.34f), Color.White.copy(alpha = 0.13f), Color(0xFF111B2A).copy(alpha = 0.36f))))
             .border(1.dp, Color.White.copy(alpha = 0.28f), CircleShape), contentAlignment = Alignment.Center) {
             Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(21.dp))
         }
+        Text(label, color = mutedGlass.copy(alpha = 0.85f), fontSize = 9.sp, maxLines = 1, textAlign = TextAlign.Center)
     }
 }
 
@@ -333,7 +334,7 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
     ) {
         Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(32.dp))
             .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.98f), Color(0xFFEAF5FF).copy(alpha = 0.96f), accent.copy(alpha = 0.88f)))))
-        Icon(icon, null, tint = if (icon == Icons.Default.WbSunny) Color(0xFFFFC928) else Color(0xFF16B8D4), modifier = Modifier.padding(bottom = 12.dp).size(15.dp))
+        Icon(icon, null, tint = if (icon == Icons.Default.WbSunny) Color(0xFFFFC928) else Color(0xFF16B8D4), modifier = Modifier.padding(bottom = 28.dp).size(18.dp))
     }
 }
 
