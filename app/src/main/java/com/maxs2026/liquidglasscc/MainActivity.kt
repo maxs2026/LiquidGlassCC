@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -173,7 +174,7 @@ private fun IOSControlCenter() {
 
                 Row(Modifier.weight(0.78f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     LongControl("Flashlight", Icons.Default.FlashlightOn, Modifier.weight(1.25f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
-                    RoundAction(Icons.Default.Calculator, white, 51.dp) { openSettings(ctx, Settings.ACTION_CALCULATOR) }
+                    RoundAction(Icons.Default.Calculator, white, 51.dp) { openCalculator(ctx) }
                     RoundAction(Icons.Default.QrCodeScanner, white, 51.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                     RoundAction(Icons.Default.Timer, white, 51.dp) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
@@ -235,6 +236,12 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
             .background(Color.White.copy(alpha = 0.17f))
             .pointerInput(Unit) {
                 detectTapGestures { tap -> onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f)) }
+            }
+            .pointerInput(Unit) {
+                detectDragGestures { change, _ ->
+                    change.consume()
+                    onValueChange((1f - change.position.y / size.height).coerceIn(0.01f, 1f))
+                }
             }, contentAlignment = Alignment.BottomCenter) {
             Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f))
                 .clip(RoundedCornerShape(28.dp)).background(Brush.verticalGradient(listOf(Color.White, accent.copy(alpha = 0.95f)))))
@@ -246,6 +253,12 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
 
 private fun readBrightness(context: Context): Float =
     (Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, 128) / 255f).coerceIn(0.01f, 1f)
+
+private fun openCalculator(context: Context) {
+    try {
+        context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (_: Exception) { openSettings(context, Settings.ACTION_SETTINGS) }
+}
 
 private fun openSettings(context: Context, action: String) {
     try { context.startActivity(Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
