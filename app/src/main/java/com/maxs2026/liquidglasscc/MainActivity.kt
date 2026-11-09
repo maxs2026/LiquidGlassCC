@@ -89,7 +89,7 @@ private fun IOSControlCenter() {
     MaterialTheme(colorScheme = darkColorScheme()) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val compact = maxHeight < 760.dp
-            val contentWidth = maxWidth * 0.82f
+            val contentWidth = maxWidth * 0.64f
             val panelSize = (contentWidth - 12.dp) / 2
             Box(Modifier.fillMaxSize().background(
                 Brush.linearGradient(listOf(Color(0xFF090B12), Color(0xFF252B37), Color(0xFF111722), Color(0xFF080A10)))
@@ -138,16 +138,16 @@ private fun IOSControlCenter() {
                 }
 
                 Row(
-                    Modifier.fillMaxWidth().height(panelSize),
+                    Modifier.fillMaxWidth().height(132.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
                     Column(
                         Modifier.weight(1f).fillMaxHeight(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Row(
-                            Modifier.fillMaxWidth().height(62.dp),
+                            Modifier.fillMaxWidth().height(54.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -216,7 +216,7 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.14", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.15", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -287,7 +287,7 @@ private fun RoundAction(icon: ImageVector, size: Dp, onClick: () -> Unit) {
 private fun RoundUtilityCircle(icon: ImageVector, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(50.dp),
+        modifier = Modifier.size(54.dp),
         shape = CircleShape,
         color = Color.White.copy(alpha = 0.16f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f))
