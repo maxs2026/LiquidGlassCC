@@ -69,8 +69,6 @@ private fun IOSControlCenter() {
     val audio = remember { ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     var brightness by remember { mutableFloatStateOf(readBrightness(ctx)) }
     var volume by remember { mutableFloatStateOf(audio.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)) }
-    var focus by remember { mutableStateOf(false) }
-    var rotation by remember { mutableStateOf(false) }
     var airplane by remember { mutableStateOf(false) }
     var flashlightOn by remember { mutableStateOf(false) }
     val batteryPercent = remember { readBattery(ctx) }
@@ -114,9 +112,9 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Row(Modifier.weight(1.06f), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                Row(Modifier.fillMaxWidth().height(if (compact) 164.dp else 180.dp), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
                     ConnectivityPanel(
-                        Modifier.weight(1f).height(if (compact) 164.dp else 180.dp),
+                        Modifier.weight(1f),
                         airplane = airplane,
                         onAirplane = {
                             airplane = !airplane
@@ -128,11 +126,14 @@ private fun IOSControlCenter() {
                     )
                     GlassPanel(Modifier.weight(1f), title = "MEDIA") {
                         Box(
-                            Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(19.dp))
-                                .background(Brush.linearGradient(listOf(Color(0xFF45668F), Color(0xFF182C4A)))),
+                            Modifier.size(54.dp)
+                                .shadow(7.dp, CircleShape)
+                                .clip(CircleShape)
+                                .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.27f), Color(0xFFB9D8FF).copy(alpha = 0.12f), Color(0xFF0B1930).copy(alpha = 0.30f))))
+                                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.30f)), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.MusicNote, null, tint = Color.White.copy(alpha = 0.92f), modifier = Modifier.size(38.dp))
+                            Icon(Icons.Default.MusicNote, null, tint = Color.White.copy(alpha = 0.92f), modifier = Modifier.size(23.dp))
                         }
                         Text("Nothing Playing", color = glassWhite, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                         Text("Music controls", color = glassMuted, fontSize = 9.sp)
@@ -144,30 +145,12 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Row(Modifier.weight(1.12f), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-                    GlassPanel(Modifier.weight(1.16f), title = "QUICK CONTROLS") {
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            MiniControl("Focus", Icons.Default.DarkMode, focus, Modifier.weight(1f)) {
-                                focus = !focus
-                                openSettings(ctx, Settings.ACTION_SOUND_SETTINGS)
-                            }
-                            MiniControl("Rotation", Icons.Default.ScreenLockRotation, rotation, Modifier.weight(1f)) {
-                                rotation = !rotation
-                                openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS)
-                            }
-                        }
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            MiniControl("Do Not Disturb", Icons.Default.NotificationsOff, false, Modifier.weight(1f)) {
-                                openSettings(ctx, Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-                            }
-                            MiniControl(if (flashlightOn) "Torch On" else "Torch", if (flashlightOn) Icons.Default.FlashlightOn else Icons.Default.FlashlightOff, flashlightOn, Modifier.weight(1f)) {
-                                if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                                    flashlightOn = setTorch(ctx, !flashlightOn)
-                                } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
-                            }
-                        }
-                    }
-                    Column(Modifier.weight(0.62f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(
+                    Modifier.fillMaxWidth().weight(1.12f),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.width(58.dp).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
                         VerticalSystemSlider(brightness, glassBlue, glassWhite, Icons.Default.Brightness6, Modifier.weight(1f)) { value ->
                             if (Settings.System.canWrite(ctx)) {
                                 brightness = value
@@ -178,7 +161,8 @@ private fun IOSControlCenter() {
                             }
                         }
                     }
-                    Column(Modifier.weight(0.62f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(Modifier.width(24.dp))
+                    Column(Modifier.width(58.dp).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
                         VerticalSystemSlider(volume, glassBlue, glassWhite, Icons.Default.VolumeUp, Modifier.weight(1f)) { value ->
                             volume = value
                             audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
@@ -196,7 +180,7 @@ private fun IOSControlCenter() {
                     ShortcutButton(Icons.Default.QrCodeScanner, "Scanner", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                     ShortcutButton(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.7", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.8", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -286,53 +270,6 @@ private fun ConnectivityCircle(
             contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription = label, tint = glassWhite, modifier = Modifier.size(23.dp))
-        }
-        Spacer(Modifier.height(5.dp))
-        Text(label, color = glassWhite, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-    }
-}
-
-@Composable
-private fun MiniControl(label: String, icon: ImageVector, active: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.fillMaxHeight(),
-        shape = RoundedCornerShape(20.dp),
-        color = Color.Transparent,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = if (active) 0.34f else 0.22f))
-    ) {
-        Column(
-            Modifier.fillMaxSize().background(
-                Brush.linearGradient(
-                    colors = if (active)
-                        listOf(Color(0xFF64B8FF).copy(alpha = 0.82f), Color(0xFF1767B2).copy(alpha = 0.62f), Color.White.copy(alpha = 0.12f))
-                    else
-                        listOf(Color.White.copy(alpha = 0.22f), Color(0xFFB9D8FF).copy(alpha = 0.10f), Color(0xFF0B1930).copy(alpha = 0.20f))
-                ),
-                RoundedCornerShape(20.dp)
-            ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // iOS-inspired circular icon medallion inside each control tile
-            Box(
-                Modifier.size(43.dp)
-                    .shadow(5.dp, CircleShape)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            colors = if (active)
-                                listOf(Color.White.copy(alpha = 0.30f), Color(0xFF73BFFF).copy(alpha = 0.32f), Color(0xFF174A80).copy(alpha = 0.42f))
-                            else
-                                listOf(Color.White.copy(alpha = 0.25f), Color(0xFFB9D8FF).copy(alpha = 0.12f), Color(0xFF0B1930).copy(alpha = 0.28f))
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, null, tint = glassWhite, modifier = Modifier.size(22.dp))
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(label, color = glassWhite, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 1)
         }
     }
 }
