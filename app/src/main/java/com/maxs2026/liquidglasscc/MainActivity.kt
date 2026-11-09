@@ -198,14 +198,14 @@ private fun IOSControlCenter() {
                 }
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    ShortcutButton(Icons.Default.FlashlightOn, "Flashlight") {
+                    ShortcutButton(Icons.Default.FlashlightOn, "Flashlight", Modifier.weight(1f)) {
                         if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             flashlightOn = setTorch(ctx, !flashlightOn)
                         } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
                     }
-                    ShortcutButton(Icons.Default.Calculate, "Calculator") { openCalculator(ctx) }
-                    ShortcutButton(Icons.Default.QrCodeScanner, "Scanner") { openSettings(ctx, Settings.ACTION_SETTINGS) }
-                    ShortcutButton(Icons.Default.Timer, "Timer") { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
+                    ShortcutButton(Icons.Default.Calculate, "Calculator", Modifier.weight(1f)) { openCalculator(ctx) }
+                    ShortcutButton(Icons.Default.QrCodeScanner, "Scanner", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
+                    ShortcutButton(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
                 Text("LIQUID GLASS  •  CONTROL CENTER", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
