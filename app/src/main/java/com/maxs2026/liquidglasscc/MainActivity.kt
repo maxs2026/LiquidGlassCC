@@ -94,12 +94,12 @@ private fun IOSControlCenter() {
                 Row(Modifier.fillMaxWidth().height(if (compact) 42.dp else 50.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(SimpleDateFormat("h:mm", Locale.getDefault()).format(Date()), color = white, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Text("•••  4G  ▮▮  $batteryPercent%", color = muted, fontSize = 12.sp)
+                    Text("4G  •  $batteryPercent%", color = muted, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                     Spacer(Modifier.width(8.dp))
                     RoundAction(Icons.Default.PowerSettingsNew, white, 34.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                 }
 
-                Row(Modifier.weight(1.45f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(Modifier.weight(1.34f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     GlassPanel(Modifier.weight(1.08f)) {
                         Text("Connectivity", color = muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -107,7 +107,7 @@ private fun IOSControlCenter() {
                                 airplane = !airplane
                                 openSettings(ctx, Settings.ACTION_AIRPLANE_MODE_SETTINGS)
                             }
-                            ControlTile("Wi-Fi", Icons.Default.Wifi, true, blue, white, Modifier.weight(1f)) {
+                            ControlTile("Wi-Fi", Icons.Default.Wifi, false, blue, white, Modifier.weight(1f)) {
                                 openSettings(ctx, Settings.Panel.ACTION_WIFI)
                             }
                         }
@@ -131,8 +131,8 @@ private fun IOSControlCenter() {
                             }
                             Spacer(Modifier.width(8.dp))
                             Column {
-                                Text("Not Playing", color = white, fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                                Text("Media player", color = muted, fontSize = 9.sp)
+                                Text("Nothing Playing", color = white, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Your audio appears here", color = muted, fontSize = 8.sp)
                             }
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
@@ -143,7 +143,7 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Row(Modifier.weight(0.88f), horizontalArrangement = Arrangement.spacedBy(9.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1.02f), horizontalArrangement = Arrangement.spacedBy(9.dp), verticalAlignment = Alignment.CenterVertically) {
                     RoundAction(Icons.Default.ScreenLockRotation, if (rotation) blue else white, 57.dp) {
                         rotation = !rotation
                         openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS)
@@ -166,9 +166,9 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Row(Modifier.weight(0.48f), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(0.38f), verticalAlignment = Alignment.CenterVertically) {
                     Surface(onClick = { focus = !focus; openSettings(ctx, Settings.ACTION_SOUND_SETTINGS) },
-                        shape = RoundedCornerShape(30.dp), color = if (focus) blue.copy(alpha = 0.30f) else Color.White.copy(alpha = 0.13f),
+                        shape = RoundedCornerShape(30.dp), color = if (focus) blue.copy(alpha = 0.30f) else Color.White.copy(alpha = 0.16f),
                         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)), modifier = Modifier.fillMaxWidth()) {
                         Row(Modifier.padding(horizontal = 13.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.DarkMode, null, tint = white, modifier = Modifier.size(19.dp))
@@ -180,7 +180,7 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Row(Modifier.weight(0.78f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.weight(0.62f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     LongControl(if (flashlightOn) "Flashlight On" else "Flashlight", if (flashlightOn) Icons.Default.FlashlightOn else Icons.Default.FlashlightOff, Modifier.weight(1.25f)) {
                         if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             flashlightOn = setTorch(ctx, !flashlightOn)
@@ -199,9 +199,9 @@ private fun IOSControlCenter() {
 
 @Composable
 private fun GlassPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Surface(modifier = modifier.fillMaxWidth().shadow(14.dp, RoundedCornerShape(25.dp)),
+    Surface(modifier = modifier.fillMaxWidth().shadow(14.dp, RoundedCornerShape(30.dp)),
         shape = RoundedCornerShape(25.dp), color = Color.White.copy(alpha = 0.13f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))) {
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))) {
         Column(Modifier.fillMaxSize().padding(11.dp), verticalArrangement = Arrangement.spacedBy(7.dp), content = content)
     }
 }
@@ -209,12 +209,12 @@ private fun GlassPanel(modifier: Modifier = Modifier, content: @Composable Colum
 @Composable
 private fun ControlTile(label: String, icon: ImageVector, active: Boolean, accent: Color, ink: Color,
                         modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Surface(onClick = onClick, modifier = modifier.fillMaxHeight(), shape = RoundedCornerShape(17.dp),
+    Surface(onClick = onClick, modifier = modifier.fillMaxHeight(), shape = RoundedCornerShape(22.dp),
         color = if (active) Color(0xFF1678D5).copy(alpha = 0.72f) else Color.White.copy(alpha = 0.12f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Icon(icon, null, tint = ink, modifier = Modifier.size(22.dp))
-            Spacer(Modifier.height(4.dp))
+            Icon(icon, null, tint = ink, modifier = Modifier.size(25.dp))
+            Spacer(Modifier.height(7.dp))
             Text(label, color = ink, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
         }
     }
@@ -230,7 +230,7 @@ private fun RoundAction(icon: ImageVector, tint: Color, size: androidx.compose.u
 
 @Composable
 private fun LongControl(label: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Surface(onClick = onClick, modifier = modifier.height(51.dp), shape = RoundedCornerShape(28.dp),
+    Surface(onClick = onClick, modifier = modifier.height(51.dp), shape = RoundedCornerShape(32.dp),
         color = Color.White.copy(alpha = 0.15f), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f))) {
         Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, null, tint = Color.White, modifier = Modifier.size(20.dp))
