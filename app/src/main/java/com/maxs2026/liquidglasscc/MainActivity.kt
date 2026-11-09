@@ -115,25 +115,20 @@ private fun IOSControlCenter() {
                 }
 
                 Row(Modifier.weight(1.06f), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-                    GlassPanel(Modifier.weight(1.18f), title = "CONNECTIONS") {
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            MiniControl("Airplane", Icons.Default.Flight, airplane, Modifier.weight(1f)) {
-                                airplane = !airplane
-                                openSettings(ctx, Settings.ACTION_AIRPLANE_MODE_SETTINGS)
-                            }
-                            MiniControl("Wi-Fi", Icons.Default.Wifi, false, Modifier.weight(1f)) {
-                                openSettings(ctx, Settings.Panel.ACTION_WIFI)
-                            }
-                        }
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            MiniControl("Bluetooth", Icons.Default.Bluetooth, false, Modifier.weight(1f)) {
-                                openSettings(ctx, Settings.ACTION_BLUETOOTH_SETTINGS)
-                            }
-                            MiniControl("Mobile", Icons.Default.SignalCellularAlt, false, Modifier.weight(1f)) {
-                                openSettings(ctx, Settings.ACTION_DATA_ROAMING_SETTINGS)
-                            }
-                        }
-                    }
+                    ConnectivityPanel(
+                        Modifier.weight(1.18f),
+                        airplane = airplane,
+                        onAirplane = {
+                            airplane = !airplane
+                            openSettings(ctx, Settings.ACTION_AIRPLANE_MODE_SETTINGS)
+                        },
+                        onAirDrop = { openSettings(ctx, Settings.ACTION_SETTINGS) },
+                        onWifi = { openSettings(ctx, Settings.Panel.ACTION_WIFI) },
+                        onCellular = { openSettings(ctx, Settings.ACTION_DATA_ROAMING_SETTINGS) },
+                        onBluetooth = { openSettings(ctx, Settings.ACTION_BLUETOOTH_SETTINGS) },
+                        onHotspot = { openSettings(ctx, Settings.ACTION_WIRELESS_SETTINGS) },
+                        onVpn = { openSettings(ctx, Settings.ACTION_VPN_SETTINGS) }
+                    )
                     GlassPanel(Modifier.weight(0.82f), title = "MEDIA") {
                         Box(
                             Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(19.dp))
@@ -240,6 +235,97 @@ private fun GlassPanel(
         ) {
             Text(title, color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.35.sp)
             content()
+        }
+    }
+}
+
+@Composable
+private fun ConnectivityPanel(
+    modifier: Modifier = Modifier,
+    airplane: Boolean,
+    onAirplane: () -> Unit,
+    onAirDrop: () -> Unit,
+    onWifi: () -> Unit,
+    onCellular: () -> Unit,
+    onBluetooth: () -> Unit,
+    onHotspot: () -> Unit,
+    onVpn: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    GlassPanel(modifier, title = "CONNECTIVITY") {
+        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ConnectivityLargeButton("Airplane", Icons.Default.Flight, airplane, Modifier.weight(1f), onAirplane)
+                ConnectivityLargeButton("Wi-Fi", Icons.Default.Wifi, false, Modifier.weight(1f), onWifi)
+            }
+            Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ConnectivityLargeButton("AirDrop", Icons.Default.Share, false, Modifier.weight(1f), onAirDrop)
+                Surface(
+                    onClick = { expanded = !expanded },
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    shape = RoundedCornerShape(19.dp),
+                    color = Color.White.copy(alpha = 0.10f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f))
+                ) {
+                    if (expanded) {
+                        Column(Modifier.fillMaxSize().padding(5.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                ConnectivityMiniButton(Icons.Default.SignalCellularAlt, "Cellular", Modifier.weight(1f), onCellular)
+                                ConnectivityMiniButton(Icons.Default.Bluetooth, "Bluetooth", Modifier.weight(1f), onBluetooth)
+                            }
+                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                ConnectivityMiniButton(Icons.Default.WifiTethering, "Hotspot", Modifier.weight(1f), onHotspot)
+                                ConnectivityMiniButton(Icons.Default.VpnKey, "VPN", Modifier.weight(1f), onVpn)
+                            }
+                        }
+                    } else {
+                        Column(Modifier.fillMaxSize().padding(7.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                                ConnectivityDot(Icons.Default.SignalCellularAlt, Modifier.weight(1f))
+                                ConnectivityDot(Icons.Default.Bluetooth, Modifier.weight(1f))
+                            }
+                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                                ConnectivityDot(Icons.Default.WifiTethering, Modifier.weight(1f))
+                                ConnectivityDot(Icons.Default.VpnKey, Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConnectivityLargeButton(label: String, icon: ImageVector, active: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick, modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(19.dp),
+        color = if (active) Color(0xFF267FC5).copy(alpha = 0.72f) else Color.White.copy(alpha = 0.13f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))
+    ) {
+        Row(Modifier.fillMaxSize().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+            Icon(icon, null, tint = glassWhite, modifier = Modifier.size(19.dp))
+            Spacer(Modifier.width(5.dp))
+            Text(label, color = glassWhite, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        }
+    }
+}
+
+@Composable
+private fun ConnectivityDot(icon: ImageVector, modifier: Modifier = Modifier) {
+    Box(modifier.aspectRatio(1f).clip(CircleShape).background(Color.White.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
+        Icon(icon, null, tint = glassWhite, modifier = Modifier.size(13.dp))
+    }
+}
+
+@Composable
+private fun ConnectivityMiniButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Surface(onClick = onClick, modifier = modifier.fillMaxHeight(), shape = RoundedCornerShape(10.dp),
+        color = Color.White.copy(alpha = 0.13f), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f))) {
+        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Icon(icon, null, tint = glassWhite, modifier = Modifier.size(15.dp))
+            Text(label, color = glassWhite, fontSize = 7.sp, maxLines = 1)
         }
     }
 }
