@@ -35,9 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +47,6 @@ class MainActivity : ComponentActivity() {
 private fun LiquidGlassApp() {
     val context = LocalContext.current
     val audio = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
-    val lifecycleOwner = LocalLifecycleOwner.current
     var darkMode by remember { mutableStateOf(true) }
     var glass by remember { mutableFloatStateOf(0.52f) }
     var accent by remember { mutableStateOf(Color(0xFF9CCBFF)) }
@@ -62,17 +58,6 @@ private fun LiquidGlassApp() {
         permissionRequested = false
         if (Settings.System.canWrite(context)) brightness = readBrightness(context)
     }
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                brightness = readBrightness(context)
-                permissionRequested = false
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-
     val ink = if (darkMode) Color(0xFFF7F8FF) else Color(0xFF18243A)
     val muted = ink.copy(alpha = 0.64f)
     val bg1 = if (darkMode) Color(0xFF0A1425) else Color(0xFFE9F1FC)
