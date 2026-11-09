@@ -207,7 +207,7 @@ private fun IOSControlCenter() {
                     ShortcutButton(Icons.Default.QrCodeScanner, "Scanner", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                     ShortcutButton(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.1", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.3", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -328,8 +328,18 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
             Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(28.dp))
                 .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.96f), accent.copy(alpha = 0.92f)))))
         }
-        Spacer(Modifier.height(8.dp))
-        Icon(icon, null, tint = white, modifier = Modifier.size(19.dp))
+        Spacer(Modifier.height(7.dp))
+        // Small iOS-style glyph beneath each vertical control, not an oversized standalone icon
+        Surface(
+            modifier = Modifier.size(29.dp),
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.075f),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f))
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = white.copy(alpha = 0.94f), modifier = Modifier.size(15.dp))
+            }
+        }
     }
 }
 
