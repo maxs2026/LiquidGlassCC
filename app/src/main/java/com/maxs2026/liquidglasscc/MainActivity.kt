@@ -207,7 +207,7 @@ private fun IOSControlCenter() {
                     ShortcutButton(Icons.Default.QrCodeScanner, "Scanner", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                     ShortcutButton(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
-                Text("LIQUID GLASS  •  CONTROL CENTER", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.1", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -222,10 +222,25 @@ private fun GlassPanel(
     Surface(
         modifier = modifier.fillMaxHeight().shadow(18.dp, RoundedCornerShape(29.dp)),
         shape = RoundedCornerShape(29.dp),
-        color = Color.White.copy(alpha = 0.105f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f))
     ) {
-        Column(Modifier.fillMaxSize().padding(11.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            Modifier.fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.20f),
+                            Color(0xFFB8D8FF).copy(alpha = 0.105f),
+                            Color(0xFF0D1C34).copy(alpha = 0.22f),
+                            Color.White.copy(alpha = 0.075f)
+                        )
+                    ),
+                    RoundedCornerShape(29.dp)
+                )
+                .padding(11.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Text(title, color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.35.sp)
             content()
         }
@@ -238,10 +253,22 @@ private fun MiniControl(label: String, icon: ImageVector, active: Boolean, modif
         onClick = onClick,
         modifier = modifier.fillMaxHeight(),
         shape = RoundedCornerShape(20.dp),
-        color = if (active) Color(0xFF267FCB).copy(alpha = 0.72f) else Color.White.copy(alpha = 0.105f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, Color.White.copy(alpha = if (active) 0.34f else 0.22f))
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(
+            Modifier.fillMaxSize().background(
+                Brush.linearGradient(
+                    colors = if (active)
+                        listOf(Color(0xFF64B8FF).copy(alpha = 0.82f), Color(0xFF1767B2).copy(alpha = 0.62f), Color.White.copy(alpha = 0.12f))
+                    else
+                        listOf(Color.White.copy(alpha = 0.22f), Color(0xFFB9D8FF).copy(alpha = 0.10f), Color(0xFF0B1930).copy(alpha = 0.20f))
+                ),
+                RoundedCornerShape(20.dp)
+            ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
             Icon(icon, null, tint = glassWhite, modifier = Modifier.size(25.dp))
             Spacer(Modifier.height(7.dp))
             Text(label, color = glassWhite, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 1)
