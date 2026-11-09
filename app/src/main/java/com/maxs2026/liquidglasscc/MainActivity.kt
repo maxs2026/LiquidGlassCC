@@ -89,6 +89,8 @@ private fun IOSControlCenter() {
     MaterialTheme(colorScheme = darkColorScheme()) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val compact = maxHeight < 760.dp
+            val contentWidth = maxWidth * 0.82f
+            val panelSize = (contentWidth - 12.dp) / 2
             Box(Modifier.fillMaxSize().background(
                 Brush.linearGradient(listOf(Color(0xFF090B12), Color(0xFF252B37), Color(0xFF111722), Color(0xFF080A10)))
             ))
@@ -96,8 +98,9 @@ private fun IOSControlCenter() {
             Box(Modifier.size(240.dp).align(Alignment.BottomEnd).offset(x = 80.dp, y = (-170).dp).blur(80.dp).background(Color(0xFF6A3D75).copy(alpha = 0.24f), CircleShape))
 
             Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                    .padding(horizontal = 17.dp, vertical = if (compact) 12.dp else 20.dp),
+                Modifier.width(contentWidth).fillMaxHeight().align(Alignment.TopCenter)
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = if (compact) 12.dp else 20.dp),
                 verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 15.dp)
             ) {
                 Row(Modifier.fillMaxWidth().height(46.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -106,7 +109,7 @@ private fun IOSControlCenter() {
                     RoundAction(Icons.Default.PowerSettingsNew, 39.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                 }
 
-                Row(Modifier.fillMaxWidth().height(if (compact) 174.dp else 190.dp), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                Row(Modifier.fillMaxWidth().height(panelSize), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     ConnectivityPanel(
                         Modifier.weight(1f),
                         airplane = airplane,
@@ -135,16 +138,16 @@ private fun IOSControlCenter() {
                 }
 
                 Row(
-                    Modifier.fillMaxWidth().height(if (compact) 204.dp else 220.dp),
+                    Modifier.fillMaxWidth().height(panelSize),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(
                         Modifier.weight(1f).fillMaxHeight(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                     ) {
                         Row(
-                            Modifier.fillMaxWidth().height(78.dp),
+                            Modifier.fillMaxWidth().height(54.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -157,8 +160,8 @@ private fun IOSControlCenter() {
                         }
                         Surface(
                             onClick = { openSettings(ctx, Settings.ACTION_SOUND_SETTINGS) },
-                            modifier = Modifier.fillMaxWidth().weight(1f),
-                            shape = RoundedCornerShape(42.dp),
+                            modifier = Modifier.fillMaxWidth().height(68.dp),
+                            shape = RoundedCornerShape(36.dp),
                             color = Color.White.copy(alpha = 0.17f),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
                         ) {
@@ -183,7 +186,7 @@ private fun IOSControlCenter() {
                             }
                         }
                     }
-                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.Brightness6, Modifier.width(66.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.WbSunny, Modifier.width(54.dp).fillMaxHeight()) { value ->
                         if (Settings.System.canWrite(ctx)) {
                             brightness = value
                             Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
@@ -192,7 +195,7 @@ private fun IOSControlCenter() {
                             permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + ctx.packageName)))
                         }
                     }
-                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(66.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(54.dp).fillMaxHeight()) { value ->
                         volume = value
                         audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
                     }
@@ -213,7 +216,7 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.9", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.11", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -310,10 +313,10 @@ private fun RoundUtility(icon: ImageVector, label: String, modifier: Modifier = 
 @Composable
 private fun ToolCircle(icon: ImageVector, label: String, modifier: Modifier = Modifier, active: Boolean = false, accent: Color = Color(0xFF76BFFF), onClick: () -> Unit) {
     Column(modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        Box(Modifier.size(66.dp).shadow(9.dp, CircleShape).clip(CircleShape)
+        Box(Modifier.size(54.dp).shadow(9.dp, CircleShape).clip(CircleShape)
             .background(Brush.linearGradient(if (active) listOf(accent, Color(0xFF1767B2)) else listOf(accent.copy(alpha = 0.34f), Color.White.copy(alpha = 0.13f), Color(0xFF111B2A).copy(alpha = 0.36f))))
             .border(1.dp, Color.White.copy(alpha = 0.28f), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
+            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(21.dp))
         }
         Text(label, color = mutedGlass.copy(alpha = 0.85f), fontSize = 9.sp, maxLines = 1, textAlign = TextAlign.Center)
     }
@@ -322,7 +325,7 @@ private fun ToolCircle(icon: ImageVector, label: String, modifier: Modifier = Mo
 @Composable
 private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon: ImageVector, modifier: Modifier = Modifier, onValueChange: (Float) -> Unit) {
     Box(
-        modifier = modifier.width(61.dp).clip(RoundedCornerShape(32.dp))
+        modifier = modifier.clip(RoundedCornerShape(32.dp))
             .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.26f), Color(0xFFBBD8F8).copy(alpha = 0.14f), Color(0xFF0B1A30).copy(alpha = 0.38f))))
             .border(1.dp, Color.White.copy(alpha = 0.32f), RoundedCornerShape(32.dp))
             .pointerInput(Unit) { detectTapGestures { tap -> onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f)) } }
@@ -331,7 +334,7 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
     ) {
         Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(32.dp))
             .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.98f), Color(0xFFEAF5FF).copy(alpha = 0.96f), accent.copy(alpha = 0.88f)))))
-        Icon(icon, null, tint = if (value > 0.48f) Color(0xFF23415F) else white, modifier = Modifier.padding(bottom = 13.dp).size(19.dp))
+        Icon(icon, null, tint = if (icon == Icons.Default.WbSunny) Color(0xFFFFC928) else Color(0xFF16B8D4), modifier = Modifier.padding(bottom = 13.dp).size(22.dp))
     }
 }
 
