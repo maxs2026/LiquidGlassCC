@@ -116,7 +116,7 @@ private fun IOSControlCenter() {
 
                 Row(Modifier.weight(1.06f), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
                     ConnectivityPanel(
-                        Modifier.weight(1f).height(if (compact) 174.dp else 190.dp),
+                        Modifier.weight(1f).height(if (compact) 164.dp else 180.dp),
                         airplane = airplane,
                         onAirplane = {
                             airplane = !airplane
@@ -196,7 +196,7 @@ private fun IOSControlCenter() {
                     ShortcutButton(Icons.Default.QrCodeScanner, "Scanner", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                     ShortcutButton(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.6", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.7", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -230,7 +230,7 @@ private fun GlassPanel(
                 .padding(11.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(title, color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.35.sp)
+            if (title.isNotBlank()) Text(title, color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.35.sp)
             content()
         }
     }
@@ -245,7 +245,7 @@ private fun ConnectivityPanel(
     onCellular: () -> Unit,
     onBluetooth: () -> Unit
 ) {
-    GlassPanel(modifier, title = "CONNECTIVITY") {
+    GlassPanel(modifier, title = "") {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 ConnectivityCircle("Wi-Fi", Icons.Default.Wifi, false, Modifier.weight(1f), onWifi)
