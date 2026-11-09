@@ -269,8 +269,24 @@ private fun MiniControl(label: String, icon: ImageVector, active: Boolean, modif
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(icon, null, tint = glassWhite, modifier = Modifier.size(25.dp))
-            Spacer(Modifier.height(7.dp))
+            // iOS-inspired circular icon medallion inside each control tile
+            Box(
+                Modifier.size(48.dp)
+                    .shadow(5.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.linearGradient(
+                            colors = if (active)
+                                listOf(Color.White.copy(alpha = 0.30f), Color(0xFF73BFFF).copy(alpha = 0.32f), Color(0xFF174A80).copy(alpha = 0.42f))
+                            else
+                                listOf(Color.White.copy(alpha = 0.25f), Color(0xFFB9D8FF).copy(alpha = 0.12f), Color(0xFF0B1930).copy(alpha = 0.28f))
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = glassWhite, modifier = Modifier.size(25.dp))
+            }
+            Spacer(Modifier.height(6.dp))
             Text(label, color = glassWhite, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 1)
         }
     }
