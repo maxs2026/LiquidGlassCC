@@ -254,7 +254,12 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
 private fun readBrightness(context: Context): Float =
     (Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, 128) / 255f).coerceIn(0.01f, 1f)
 
-private fun openFlashlightSettings(context: Context) {\n    try { context.startActivity(Intent("android.settings.FLASHLIGHT_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }\n    catch (_: Exception) { openSettings(context, Settings.ACTION_SETTINGS) }\n}\n\nprivate fun openCalculator(context: Context) {
+private fun openFlashlightSettings(context: Context) {
+    try { context.startActivity(Intent("android.settings.FLASHLIGHT_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    catch (_: Exception) { openSettings(context, Settings.ACTION_SETTINGS) }
+}
+
+private fun openCalculator(context: Context) {
     try {
         context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     } catch (_: Exception) { openSettings(context, Settings.ACTION_SETTINGS) }
