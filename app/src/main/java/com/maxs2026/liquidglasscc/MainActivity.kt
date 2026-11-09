@@ -216,7 +216,7 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.13", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.14", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -318,7 +318,7 @@ private fun ToolCircle(icon: ImageVector, modifier: Modifier = Modifier, active:
     Box(modifier.height(72.dp), contentAlignment = Alignment.TopCenter) {
         Surface(
             onClick = onClick,
-            modifier = Modifier.size(54.dp),
+            modifier = Modifier.size(62.dp),
             shape = CircleShape,
             color = Color.Transparent,
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
@@ -331,7 +331,7 @@ private fun ToolCircle(icon: ImageVector, modifier: Modifier = Modifier, active:
                     )),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(21.dp))
+                Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(29.dp))
             }
         }
     }
