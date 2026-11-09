@@ -116,7 +116,7 @@ private fun IOSControlCenter() {
 
                 Row(Modifier.weight(1.06f), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
                     ConnectivityPanel(
-                        Modifier.weight(1f),
+                        Modifier.weight(1f).height(if (compact) 174.dp else 190.dp),
                         airplane = airplane,
                         onAirplane = {
                             airplane = !airplane
@@ -196,7 +196,7 @@ private fun IOSControlCenter() {
                     ShortcutButton(Icons.Default.QrCodeScanner, "Scanner", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                     ShortcutButton(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.5", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.6", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
