@@ -186,7 +186,7 @@ private fun IOSControlCenter() {
                             }
                         }
                     }
-                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.WbSunny, Modifier.width(66.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.WbSunny, Modifier.width(52.dp).fillMaxHeight()) { value ->
                         if (Settings.System.canWrite(ctx)) {
                             brightness = value
                             Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
@@ -216,7 +216,7 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.12", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.13", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -287,13 +287,13 @@ private fun RoundAction(icon: ImageVector, size: Dp, onClick: () -> Unit) {
 private fun RoundUtilityCircle(icon: ImageVector, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(62.dp),
+        modifier = Modifier.size(50.dp),
         shape = CircleShape,
         color = Color.White.copy(alpha = 0.16f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f))
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(29.dp))
+            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(22.dp))
         }
     }
 }
@@ -334,7 +334,7 @@ private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon
     ) {
         Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(32.dp))
             .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.98f), Color(0xFFEAF5FF).copy(alpha = 0.96f), accent.copy(alpha = 0.88f)))))
-        Icon(icon, null, tint = if (icon == Icons.Default.WbSunny) Color(0xFFFFC928) else Color(0xFF16B8D4), modifier = Modifier.padding(bottom = 28.dp).size(18.dp))
+        Icon(icon, null, tint = if (icon == Icons.Default.WbSunny) Color(0xFFFFC928) else Color(0xFF16B8D4), modifier = Modifier.padding(bottom = 12.dp).size(15.dp))
     }
 }
 
