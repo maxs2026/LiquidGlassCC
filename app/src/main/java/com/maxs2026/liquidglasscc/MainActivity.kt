@@ -26,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.border
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -152,8 +153,8 @@ private fun IOSControlCenter() {
                 }
 
                 Row(Modifier.weight(1.12f), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-                    GlassPanel(Modifier.weight(0.82f), title = "QUICK SETTINGS") {
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GlassPanel(Modifier.weight(1.16f), title = "QUICK CONTROLS") {
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                             MiniControl("Focus", Icons.Default.DarkMode, focus, Modifier.weight(1f)) {
                                 focus = !focus
                                 openSettings(ctx, Settings.ACTION_SOUND_SETTINGS)
@@ -163,7 +164,7 @@ private fun IOSControlCenter() {
                                 openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS)
                             }
                         }
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                             MiniControl("Do Not Disturb", Icons.Default.NotificationsOff, false, Modifier.weight(1f)) {
                                 openSettings(ctx, Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
                             }
@@ -174,9 +175,7 @@ private fun IOSControlCenter() {
                             }
                         }
                     }
-                    Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("BRIGHTNESS", color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                        Spacer(Modifier.height(6.dp))
+                    Column(Modifier.weight(0.62f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
                         VerticalSystemSlider(brightness, glassBlue, glassWhite, Icons.Default.Brightness6, Modifier.weight(1f)) { value ->
                             if (Settings.System.canWrite(ctx)) {
                                 brightness = value
@@ -187,9 +186,7 @@ private fun IOSControlCenter() {
                             }
                         }
                     }
-                    Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("VOLUME", color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                        Spacer(Modifier.height(6.dp))
+                    Column(Modifier.weight(0.62f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
                         VerticalSystemSlider(volume, glassBlue, glassWhite, Icons.Default.VolumeUp, Modifier.weight(1f)) { value ->
                             volume = value
                             audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
@@ -271,7 +268,7 @@ private fun MiniControl(label: String, icon: ImageVector, active: Boolean, modif
         ) {
             // iOS-inspired circular icon medallion inside each control tile
             Box(
-                Modifier.size(48.dp)
+                Modifier.size(43.dp)
                     .shadow(5.dp, CircleShape)
                     .clip(CircleShape)
                     .background(
@@ -284,7 +281,7 @@ private fun MiniControl(label: String, icon: ImageVector, active: Boolean, modif
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, null, tint = glassWhite, modifier = Modifier.size(25.dp))
+                Icon(icon, null, tint = glassWhite, modifier = Modifier.size(22.dp))
             }
             Spacer(Modifier.height(6.dp))
             Text(label, color = glassWhite, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 1)
@@ -312,34 +309,47 @@ private fun ShortcutButton(icon: ImageVector, label: String, modifier: Modifier 
 
 @Composable
 private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon: ImageVector, modifier: Modifier = Modifier, onValueChange: (Float) -> Unit) {
-    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(28.dp))
-                .background(Color.White.copy(alpha = 0.14f))
-                .pointerInput(Unit) { detectTapGestures { tap -> onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f)) } }
-                .pointerInput(Unit) {
-                    detectDragGestures { change, _ ->
-                        change.consume()
-                        onValueChange((1f - change.position.y / size.height).coerceIn(0.01f, 1f))
-                    }
-                },
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(28.dp))
-                .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.96f), accent.copy(alpha = 0.92f)))))
-        }
-        Spacer(Modifier.height(7.dp))
-        // Small iOS-style glyph beneath each vertical control, not an oversized standalone icon
-        Surface(
-            modifier = Modifier.size(29.dp),
-            shape = CircleShape,
-            color = Color.White.copy(alpha = 0.075f),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f))
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(icon, null, tint = white.copy(alpha = 0.94f), modifier = Modifier.size(15.dp))
+    // Narrow iOS-style capsule: the rail is deliberately slim, with its glyph tucked inside.
+    Box(
+        modifier = modifier
+            .width(58.dp)
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(32.dp))
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color.White.copy(alpha = 0.25f), Color(0xFFBBD8F8).copy(alpha = 0.15f), Color(0xFF0B1A30).copy(alpha = 0.34f))
+                )
+            )
+            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.32f)), RoundedCornerShape(32.dp))
+            .pointerInput(Unit) {
+                detectTapGestures { tap ->
+                    onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f))
+                }
             }
-        }
+            .pointerInput(Unit) {
+                detectDragGestures { change, _ ->
+                    change.consume()
+                    onValueChange((1f - change.position.y / size.height).coerceIn(0.01f, 1f))
+                }
+            },
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Box(
+            Modifier.fillMaxWidth()
+                .fillMaxHeight(value.coerceIn(0.01f, 1f))
+                .clip(RoundedCornerShape(32.dp))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color.White.copy(alpha = 0.98f), Color(0xFFEAF5FF).copy(alpha = 0.96f), accent.copy(alpha = 0.88f))
+                    )
+                )
+        )
+        Icon(
+            icon,
+            contentDescription = if (icon == Icons.Default.Brightness6) "Brightness" else "Volume",
+            tint = if (value > 0.48f) Color(0xFF23415F) else white,
+            modifier = Modifier.padding(bottom = 13.dp).size(18.dp)
+        )
     }
 }
 
