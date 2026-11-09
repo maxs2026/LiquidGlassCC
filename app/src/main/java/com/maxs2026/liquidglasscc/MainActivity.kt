@@ -100,19 +100,9 @@ private fun IOSControlCenter() {
                     .padding(horizontal = 17.dp, vertical = if (compact) 12.dp else 20.dp),
                 verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 15.dp)
             ) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                        Text("Control Center", color = whiteGlass, fontSize = 23.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.6).sp)
-                        Text(SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date()), color = mutedGlass.copy(alpha = 0.75f), fontSize = 11.sp)
-                    }
-                    Spacer(Modifier.weight(1f))
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(SimpleDateFormat("h:mm", Locale.getDefault()).format(Date()), color = whiteGlass, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
-                        Text(batteryPercent.toString() + "%  •  Android", color = mutedGlass.copy(alpha = 0.78f), fontSize = 10.sp)
-                    }
-                    Spacer(Modifier.width(12.dp))
+                Row(Modifier.fillMaxWidth().height(46.dp), verticalAlignment = Alignment.CenterVertically) {
                     RoundAction(Icons.Default.Add, 39.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
-                    Spacer(Modifier.width(7.dp))
+                    Spacer(Modifier.weight(1f))
                     RoundAction(Icons.Default.PowerSettingsNew, 39.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                 }
 
@@ -144,32 +134,56 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RoundUtility(Icons.Default.ScreenRotation, "Rotation", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS) }
-                    RoundUtility(Icons.Default.Notifications, "Alerts", Modifier.weight(1f)) { openAppNotificationSettings(ctx) }
-                }
-
-                Row(Modifier.fillMaxWidth().height(if (compact) 158.dp else 178.dp), horizontalArrangement = Arrangement.spacedBy(11.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        onClick = { openSettings(ctx, Settings.ACTION_SOUND_SETTINGS) },
-                        modifier = Modifier.weight(1.18f).fillMaxHeight(),
-                        shape = RoundedCornerShape(28.dp),
-                        color = Color.White.copy(alpha = 0.13f),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))
+                Row(
+                    Modifier.fillMaxWidth().height(if (compact) 204.dp else 220.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        Modifier.weight(1f).fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(Modifier.fillMaxSize().padding(horizontal = 13.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Box(Modifier.size(34.dp).clip(CircleShape).background(Color(0xFF6C8DEB).copy(alpha = 0.30f)), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Bedtime, null, tint = whiteGlass, modifier = Modifier.size(19.dp))
+                        Row(
+                            Modifier.fillMaxWidth().height(78.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RoundUtilityCircle(Icons.Default.ScreenRotation, Modifier.weight(1f)) {
+                                openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS)
                             }
-                            Column {
-                                Text("Focus", color = whiteGlass, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                                Text("Do Not Disturb", color = mutedGlass.copy(alpha = 0.70f), fontSize = 9.sp)
+                            RoundUtilityCircle(Icons.Default.Notifications, Modifier.weight(1f)) {
+                                openAppNotificationSettings(ctx)
                             }
-                            Spacer(Modifier.weight(1f))
-                            Icon(Icons.Default.ExpandMore, null, tint = mutedGlass, modifier = Modifier.size(17.dp))
+                        }
+                        Surface(
+                            onClick = { openSettings(ctx, Settings.ACTION_SOUND_SETTINGS) },
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            shape = RoundedCornerShape(42.dp),
+                            color = Color.White.copy(alpha = 0.17f),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
+                        ) {
+                            Row(
+                                Modifier.fillMaxSize().padding(horizontal = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(
+                                    Modifier.size(38.dp).clip(CircleShape)
+                                        .background(Color(0xFF718FF0).copy(alpha = 0.34f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Bedtime, null, tint = whiteGlass, modifier = Modifier.size(22.dp))
+                                }
+                                Column {
+                                    Text("Focus", color = whiteGlass, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                    Text("Do Not Disturb", color = mutedGlass.copy(alpha = 0.72f), fontSize = 9.sp)
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Icon(Icons.Default.ExpandMore, null, tint = mutedGlass, modifier = Modifier.size(18.dp))
+                            }
                         }
                     }
-                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.Brightness6, Modifier.width(61.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.Brightness6, Modifier.width(66.dp).fillMaxHeight()) { value ->
                         if (Settings.System.canWrite(ctx)) {
                             brightness = value
                             Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
@@ -178,7 +192,7 @@ private fun IOSControlCenter() {
                             permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + ctx.packageName)))
                         }
                     }
-                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(61.dp).fillMaxHeight()) { value ->
+                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(66.dp).fillMaxHeight()) { value ->
                         volume = value
                         audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
                     }
@@ -190,16 +204,13 @@ private fun IOSControlCenter() {
                             flashlightOn = setTorch(ctx, !flashlightOn)
                         } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
                     }
-                    ToolCircle(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
-                    ToolCircle(Icons.Default.Calculate, "Calculator", Modifier.weight(1f)) { openCalculator(ctx) }
                     ToolCircle(Icons.Default.CameraAlt, "Camera", Modifier.weight(1f)) { openCamera(ctx) }
-                }
-
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ToolCircle(Icons.Default.ScreenShare, "Screen cast", Modifier.weight(1f), accent = Color(0xFF54C98B)) { openSettings(ctx, Settings.ACTION_CAST_SETTINGS) }
-                    ToolCircle(Icons.Default.QrCodeScanner, "QR scanner", Modifier.weight(1f), accent = Color(0xFFEC719A)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
-                    Spacer(Modifier.weight(1f))
-                    Spacer(Modifier.weight(1f))
+                    ToolCircle(Icons.Default.ScreenShare, "Screen cast", Modifier.weight(1f), accent = Color(0xFF54C98B)) {
+                        openSettings(ctx, Settings.ACTION_CAST_SETTINGS)
+                    }
+                    ToolCircle(Icons.Default.QrCodeScanner, "QR scanner", Modifier.weight(1f), accent = Color(0xFFEC719A)) {
+                        openSettings(ctx, Settings.ACTION_SETTINGS)
+                    }
                 }
 
                 Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.9", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
@@ -270,6 +281,21 @@ private fun RoundAction(icon: ImageVector, size: Dp, onClick: () -> Unit) {
 }
 
 @Composable
+private fun RoundUtilityCircle(icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.aspectRatio(1f),
+        shape = CircleShape,
+        color = Color.White.copy(alpha = 0.16f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f))
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(29.dp))
+        }
+    }
+}
+
+@Composable
 private fun RoundUtility(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(onClick = onClick, modifier = modifier.height(62.dp), shape = RoundedCornerShape(24.dp),
         color = Color.White.copy(alpha = 0.15f), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))) {
@@ -284,7 +310,7 @@ private fun RoundUtility(icon: ImageVector, label: String, modifier: Modifier = 
 @Composable
 private fun ToolCircle(icon: ImageVector, label: String, modifier: Modifier = Modifier, active: Boolean = false, accent: Color = Color(0xFF76BFFF), onClick: () -> Unit) {
     Column(modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        Box(Modifier.size(55.dp).shadow(9.dp, CircleShape).clip(CircleShape)
+        Box(Modifier.size(66.dp).shadow(9.dp, CircleShape).clip(CircleShape)
             .background(Brush.linearGradient(if (active) listOf(accent, Color(0xFF1767B2)) else listOf(accent.copy(alpha = 0.34f), Color.White.copy(alpha = 0.13f), Color(0xFF111B2A).copy(alpha = 0.36f))))
             .border(1.dp, Color.White.copy(alpha = 0.28f), CircleShape), contentAlignment = Alignment.Center) {
             Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
