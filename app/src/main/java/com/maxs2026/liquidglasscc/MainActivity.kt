@@ -55,22 +55,20 @@ class MainActivity : ComponentActivity() {
      }
      CircleButton(Icons.Default.Settings,white){ open(ctx,Settings.ACTION_SETTINGS) }
     }
-    Row(Modifier.weight(1.25f),horizontalArrangement=Arrangement.spacedBy(9.dp)) {
-     GlassBox(Modifier.weight(1.35f)) {
-      Text("Connectivity",color=muted,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
-      Row(Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(7.dp)) {
-       Tile("Wi-Fi",Icons.Default.Wifi,true,blue,white,Modifier.weight(1f)){open(ctx,Settings.Panel.ACTION_WIFI)}
-       Tile("Bluetooth",Icons.Default.Bluetooth,false,blue,white,Modifier.weight(1f)){open(ctx,Settings.ACTION_BLUETOOTH_SETTINGS)}
-      }
-      Row(Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(7.dp)) {
-       Tile("Airplane",Icons.Default.Flight,false,blue,white,Modifier.weight(1f)){open(ctx,Settings.ACTION_AIRPLANE_MODE_SETTINGS)}
-       Tile("Flashlight",Icons.Default.FlashlightOn,false,blue,white,Modifier.weight(1f)){open(ctx,Settings.ACTION_SETTINGS)}
-      }
+    GlassBox(Modifier.weight(1.08f)) {
+     Text("Connectivity",color=muted,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
+     Row(Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+      Tile("Wi-Fi",Icons.Default.Wifi,true,blue,white,Modifier.weight(1f)){open(ctx,Settings.Panel.ACTION_WIFI)}
+      Tile("Bluetooth",Icons.Default.Bluetooth,false,blue,white,Modifier.weight(1f)){open(ctx,Settings.ACTION_BLUETOOTH_SETTINGS)}
      }
-     Column(Modifier.weight(.72f),verticalArrangement=Arrangement.spacedBy(9.dp)) {
-      Tile("Focus",Icons.Default.DoNotDisturbOn,focus,blue,white,Modifier.weight(1f)){focus=!focus}
-      Tile("Rotation",Icons.Default.ScreenLockRotation,false,blue,white,Modifier.weight(1f)){open(ctx,Settings.ACTION_DISPLAY_SETTINGS)}
+     Row(Modifier.weight(1f),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+      Tile("Airplane",Icons.Default.Flight,false,blue,white,Modifier.weight(1f)){open(ctx,Settings.ACTION_AIRPLANE_MODE_SETTINGS)}
+      Tile("Flashlight",Icons.Default.FlashlightOn,false,blue,white,Modifier.weight(1f)){open(ctx,Settings.ACTION_SETTINGS)}
      }
+    }
+    Row(Modifier.weight(.34f),horizontalArrangement=Arrangement.spacedBy(9.dp)) {
+     Tile("Focus",Icons.Default.DoNotDisturbOn,focus,blue,white,Modifier.weight(1f)){focus=!focus}
+     Tile("Rotation",Icons.Default.ScreenLockRotation,false,blue,white,Modifier.weight(1f)){open(ctx,Settings.ACTION_DISPLAY_SETTINGS)}
     }
     GlassBox(Modifier.weight(.65f)) {
      Row(verticalAlignment=Alignment.CenterVertically) {
