@@ -58,24 +58,25 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private val glassWhite = Color(0xFFF7F9FF)
+private val glassMuted = Color(0xFFB8C4D8)
+private val glassBlue = Color(0xFF70B9FF)
+
 @Composable
 private fun IOSControlCenter() {
     val ctx = LocalContext.current
     val audio = remember { ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
-    val white = Color(0xFFF8FAFF)
-    val muted = white.copy(alpha = 0.70f)
-    val blue = Color(0xFF69B7FF)
     var brightness by remember { mutableFloatStateOf(readBrightness(ctx)) }
     var volume by remember { mutableFloatStateOf(audio.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)) }
     var focus by remember { mutableStateOf(false) }
     var rotation by remember { mutableStateOf(false) }
     var airplane by remember { mutableStateOf(false) }
     var flashlightOn by remember { mutableStateOf(false) }
-    var batteryPercent by remember { mutableIntStateOf(readBattery(ctx)) }
+    val batteryPercent = remember { readBattery(ctx) }
+    var askedPermission by remember { mutableStateOf(false) }
     val flashlightPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) flashlightOn = setTorch(ctx, true)
     }
-    var askedPermission by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         askedPermission = false
         if (Settings.System.canWrite(ctx)) brightness = readBrightness(ctx)
@@ -85,137 +86,165 @@ private fun IOSControlCenter() {
         BoxWithConstraints(
             Modifier.fillMaxSize().background(
                 Brush.linearGradient(
-                    listOf(Color(0xFF050A16), Color(0xFF102747), Color(0xFF263F60), Color(0xFF091426))
+                    colors = listOf(Color(0xFF080D19), Color(0xFF172B49), Color(0xFF253D5D), Color(0xFF101A2B)),
+                    start = androidx.compose.ui.geometry.Offset.Zero,
+                    end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                 )
-            ).padding(start = 15.dp, end = 15.dp, top = 12.dp, bottom = 12.dp)
+            )
         ) {
-            val compact = maxHeight < 700.dp
-            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 11.dp)) {
-                Row(Modifier.fillMaxWidth().height(if (compact) 42.dp else 50.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(SimpleDateFormat("h:mm", Locale.getDefault()).format(Date()), color = white, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            val compact = maxHeight < 730.dp
+            Column(
+                Modifier.fillMaxSize().padding(horizontal = 17.dp, vertical = if (compact) 12.dp else 18.dp),
+                verticalArrangement = Arrangement.spacedBy(if (compact) 11.dp else 15.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column {
+                        Text("Control Center", color = glassWhite, fontSize = 23.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp)
+                        Text(SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date()), color = glassMuted, fontSize = 11.sp)
+                    }
                     Spacer(Modifier.weight(1f))
-                    Text("4G  •  $batteryPercent%", color = muted, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                    Spacer(Modifier.width(8.dp))
-                    RoundAction(Icons.Default.PowerSettingsNew, white, 34.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(SimpleDateFormat("h:mm", Locale.getDefault()).format(Date()), color = glassWhite, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
+                        Text("$batteryPercent%  •  4G", color = glassMuted, fontSize = 10.sp)
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    RoundAction(Icons.Default.PowerSettingsNew, glassWhite, if (compact) 39.dp else 43.dp) {
+                        openSettings(ctx, Settings.ACTION_SETTINGS)
+                    }
                 }
 
-                Row(Modifier.weight(1.34f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    GlassPanel(Modifier.weight(1.08f)) {
-                        Text("Connectivity", color = muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            ControlTile("Airplane", Icons.Default.Flight, airplane, blue, white, Modifier.weight(1f)) {
+                Row(Modifier.weight(1.06f), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                    GlassPanel(Modifier.weight(1.18f), title = "CONNECTIONS") {
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            MiniControl("Airplane", Icons.Default.Flight, airplane, Modifier.weight(1f)) {
                                 airplane = !airplane
                                 openSettings(ctx, Settings.ACTION_AIRPLANE_MODE_SETTINGS)
                             }
-                            ControlTile("Wi-Fi", Icons.Default.Wifi, false, blue, white, Modifier.weight(1f)) {
+                            MiniControl("Wi-Fi", Icons.Default.Wifi, false, Modifier.weight(1f)) {
                                 openSettings(ctx, Settings.Panel.ACTION_WIFI)
                             }
                         }
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            ControlTile("Bluetooth", Icons.Default.Bluetooth, false, blue, white, Modifier.weight(1f)) {
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            MiniControl("Bluetooth", Icons.Default.Bluetooth, false, Modifier.weight(1f)) {
                                 openSettings(ctx, Settings.ACTION_BLUETOOTH_SETTINGS)
                             }
-                            ControlTile("Mobile data", Icons.Default.SignalCellularAlt, false, blue, white, Modifier.weight(1f)) {
+                            MiniControl("Mobile", Icons.Default.SignalCellularAlt, false, Modifier.weight(1f)) {
                                 openSettings(ctx, Settings.ACTION_DATA_ROAMING_SETTINGS)
                             }
                         }
                     }
-                    GlassPanel(Modifier.weight(0.92f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Now Playing", color = white, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                            Icon(Icons.Default.MoreHoriz, null, tint = muted, modifier = Modifier.size(19.dp))
+                    GlassPanel(Modifier.weight(0.82f), title = "MEDIA") {
+                        Box(
+                            Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(19.dp))
+                                .background(Brush.linearGradient(listOf(Color(0xFF45668F), Color(0xFF182C4A)))),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.MusicNote, null, tint = Color.White.copy(alpha = 0.92f), modifier = Modifier.size(38.dp))
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                            Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Brush.linearGradient(listOf(Color(0xFF647DA6), Color(0xFF293C5D)))), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.MusicNote, null, tint = white, modifier = Modifier.size(24.dp))
-                            }
-                            Spacer(Modifier.width(8.dp))
-                            Column {
-                                Text("Nothing Playing", color = white, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                                Text("Your audio appears here", color = muted, fontSize = 8.sp)
-                            }
-                        }
+                        Text("Nothing Playing", color = glassWhite, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                        Text("Music controls", color = glassMuted, fontSize = 9.sp)
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.SkipPrevious, null, tint = muted, modifier = Modifier.size(21.dp))
-                            Icon(Icons.Default.PlayArrow, null, tint = white, modifier = Modifier.size(29.dp))
-                            Icon(Icons.Default.SkipNext, null, tint = muted, modifier = Modifier.size(21.dp))
+                            Icon(Icons.Default.SkipPrevious, null, tint = glassMuted, modifier = Modifier.size(19.dp))
+                            Icon(Icons.Default.PlayArrow, null, tint = glassWhite, modifier = Modifier.size(27.dp))
+                            Icon(Icons.Default.SkipNext, null, tint = glassMuted, modifier = Modifier.size(19.dp))
                         }
                     }
                 }
 
-                Row(Modifier.weight(1.02f), horizontalArrangement = Arrangement.spacedBy(9.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RoundAction(Icons.Default.ScreenLockRotation, if (rotation) blue else white, 57.dp) {
-                        rotation = !rotation
-                        openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS)
-                    }
-                    RoundAction(Icons.Default.NotificationsOff, white, 57.dp) {
-                        openSettings(ctx, Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-                    }
-                    VerticalSystemSlider(brightness, blue, white, Icons.Default.Brightness6, Modifier.weight(1f)) { value ->
-                        if (Settings.System.canWrite(ctx)) {
-                            brightness = value
-                            Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
-                        } else if (!askedPermission) {
-                            askedPermission = true
-                            permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:${ctx.packageName}")))
+                Row(Modifier.weight(1.12f), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                    GlassPanel(Modifier.weight(0.82f), title = "QUICK SETTINGS") {
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            MiniControl("Focus", Icons.Default.DarkMode, focus, Modifier.weight(1f)) {
+                                focus = !focus
+                                openSettings(ctx, Settings.ACTION_SOUND_SETTINGS)
+                            }
+                            MiniControl("Rotation", Icons.Default.ScreenLockRotation, rotation, Modifier.weight(1f)) {
+                                rotation = !rotation
+                                openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS)
+                            }
+                        }
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            MiniControl("Do Not Disturb", Icons.Default.NotificationsOff, false, Modifier.weight(1f)) {
+                                openSettings(ctx, Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                            }
+                            MiniControl(if (flashlightOn) "Torch On" else "Torch", if (flashlightOn) Icons.Default.FlashlightOn else Icons.Default.FlashlightOff, flashlightOn, Modifier.weight(1f)) {
+                                if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                    flashlightOn = setTorch(ctx, !flashlightOn)
+                                } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
+                            }
                         }
                     }
-                    VerticalSystemSlider(volume, blue, white, Icons.Default.VolumeUp, Modifier.weight(1f)) { value ->
-                        volume = value
-                        audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
+                    Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("BRIGHTNESS", color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                        Spacer(Modifier.height(6.dp))
+                        VerticalSystemSlider(brightness, glassBlue, glassWhite, Icons.Default.Brightness6, Modifier.weight(1f)) { value ->
+                            if (Settings.System.canWrite(ctx)) {
+                                brightness = value
+                                Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
+                            } else if (!askedPermission) {
+                                askedPermission = true
+                                permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:${ctx.packageName}")))
+                            }
+                        }
+                    }
+                    Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("VOLUME", color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                        Spacer(Modifier.height(6.dp))
+                        VerticalSystemSlider(volume, glassBlue, glassWhite, Icons.Default.VolumeUp, Modifier.weight(1f)) { value ->
+                            volume = value
+                            audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
+                        }
                     }
                 }
 
-                Row(Modifier.weight(0.38f), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(onClick = { focus = !focus; openSettings(ctx, Settings.ACTION_SOUND_SETTINGS) },
-                        shape = RoundedCornerShape(30.dp), color = if (focus) blue.copy(alpha = 0.30f) else Color.White.copy(alpha = 0.16f),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)), modifier = Modifier.fillMaxWidth()) {
-                        Row(Modifier.padding(horizontal = 13.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.DarkMode, null, tint = white, modifier = Modifier.size(19.dp))
-                            Spacer(Modifier.width(9.dp))
-                            Text(if (focus) "Focus On" else "Focus", color = white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                            Spacer(Modifier.weight(1f))
-                            Icon(Icons.Default.ChevronRight, null, tint = muted, modifier = Modifier.size(18.dp))
-                        }
-                    }
-                }
-
-                Row(Modifier.weight(0.62f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LongControl(if (flashlightOn) "Flashlight On" else "Flashlight", if (flashlightOn) Icons.Default.FlashlightOn else Icons.Default.FlashlightOff, Modifier.weight(1.25f)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ShortcutButton(Icons.Default.FlashlightOn, "Flashlight") {
                         if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             flashlightOn = setTorch(ctx, !flashlightOn)
                         } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
                     }
-                    RoundAction(Icons.Default.Apps, white, 51.dp) { openCalculator(ctx) }
-                    RoundAction(Icons.Default.QrCodeScanner, white, 51.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
-                    RoundAction(Icons.Default.Timer, white, 51.dp) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
+                    ShortcutButton(Icons.Default.Calculate, "Calculator") { openCalculator(ctx) }
+                    ShortcutButton(Icons.Default.QrCodeScanner, "Scanner") { openSettings(ctx, Settings.ACTION_SETTINGS) }
+                    ShortcutButton(Icons.Default.Timer, "Timer") { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
-                Text("LIQUID GLASS  •  CONTROL CENTER", color = white.copy(alpha = 0.35f), fontSize = 8.sp, letterSpacing = 1.7.sp,
-                    textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
 }
 
 @Composable
-private fun GlassPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Surface(modifier = modifier.fillMaxWidth().shadow(14.dp, RoundedCornerShape(30.dp)),
-        shape = RoundedCornerShape(25.dp), color = Color.White.copy(alpha = 0.13f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))) {
-        Column(Modifier.fillMaxSize().padding(11.dp), verticalArrangement = Arrangement.spacedBy(7.dp), content = content)
+private fun GlassPanel(
+    modifier: Modifier = Modifier,
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        modifier = modifier.fillMaxHeight().shadow(18.dp, RoundedCornerShape(29.dp)),
+        shape = RoundedCornerShape(29.dp),
+        color = Color.White.copy(alpha = 0.105f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))
+    ) {
+        Column(Modifier.fillMaxSize().padding(11.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(title, color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.35.sp)
+            content()
+        }
     }
 }
 
 @Composable
-private fun ControlTile(label: String, icon: ImageVector, active: Boolean, accent: Color, ink: Color,
-                        modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Surface(onClick = onClick, modifier = modifier.fillMaxHeight(), shape = RoundedCornerShape(22.dp),
-        color = if (active) Color(0xFF1678D5).copy(alpha = 0.72f) else Color.White.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))) {
+private fun MiniControl(label: String, icon: ImageVector, active: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxHeight(),
+        shape = RoundedCornerShape(20.dp),
+        color = if (active) Color(0xFF267FCB).copy(alpha = 0.72f) else Color.White.copy(alpha = 0.105f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Icon(icon, null, tint = ink, modifier = Modifier.size(25.dp))
+            Icon(icon, null, tint = glassWhite, modifier = Modifier.size(25.dp))
             Spacer(Modifier.height(7.dp))
-            Text(label, color = ink, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+            Text(label, color = glassWhite, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 1)
         }
     }
 }
@@ -223,42 +252,40 @@ private fun ControlTile(label: String, icon: ImageVector, active: Boolean, accen
 @Composable
 private fun RoundAction(icon: ImageVector, tint: Color, size: androidx.compose.ui.unit.Dp, onClick: () -> Unit) {
     Surface(onClick = onClick, shape = CircleShape, color = Color.White.copy(alpha = 0.15f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.19f)), modifier = Modifier.size(size)) {
-        Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = tint, modifier = Modifier.size(size * 0.38f)) }
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), modifier = Modifier.size(size)) {
+        Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = tint, modifier = Modifier.size(size * 0.4f)) }
     }
 }
 
 @Composable
-private fun LongControl(label: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Surface(onClick = onClick, modifier = modifier.height(51.dp), shape = RoundedCornerShape(32.dp),
-        color = Color.White.copy(alpha = 0.15f), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f))) {
-        Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = Color.White, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(label, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+private fun ShortcutButton(icon: ImageVector, label: String, onClick: () -> Unit) {
+    Column(Modifier.weight(1f).clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.15f), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), modifier = Modifier.size(49.dp)) {
+            Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = glassWhite, modifier = Modifier.size(21.dp)) }
         }
+        Text(label, color = glassMuted, fontSize = 9.sp, maxLines = 1)
     }
 }
 
 @Composable
-private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon: ImageVector,
-                                 modifier: Modifier = Modifier, onValueChange: (Float) -> Unit) {
-    Column(modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Box(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(28.dp))
-            .background(Color.White.copy(alpha = 0.17f))
-            .pointerInput(Unit) {
-                detectTapGestures { tap -> onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f)) }
-            }
-            .pointerInput(Unit) {
-                detectDragGestures { change, _ ->
-                    change.consume()
-                    onValueChange((1f - change.position.y / size.height).coerceIn(0.01f, 1f))
-                }
-            }, contentAlignment = Alignment.BottomCenter) {
-            Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f))
-                .clip(RoundedCornerShape(28.dp)).background(Brush.verticalGradient(listOf(Color.White, accent.copy(alpha = 0.95f)))))
+private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon: ImageVector, modifier: Modifier = Modifier, onValueChange: (Float) -> Unit) {
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(28.dp))
+                .background(Color.White.copy(alpha = 0.14f))
+                .pointerInput(Unit) { detectTapGestures { tap -> onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f)) } }
+                .pointerInput(Unit) {
+                    detectDragGestures { change, _ ->
+                        change.consume()
+                        onValueChange((1f - change.position.y / size.height).coerceIn(0.01f, 1f))
+                    }
+                },
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(28.dp))
+                .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.96f), accent.copy(alpha = 0.92f)))))
         }
-        Spacer(Modifier.height(7.dp))
+        Spacer(Modifier.height(8.dp))
         Icon(icon, null, tint = white, modifier = Modifier.size(19.dp))
     }
 }
