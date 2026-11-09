@@ -146,7 +146,7 @@ private fun IOSControlCenter() {
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     RoundUtility(Icons.Default.ScreenRotation, "Rotation", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS) }
-                    RoundUtility(Icons.Default.Notifications, "Alerts", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_NOTIFICATION_SETTINGS) }
+                    RoundUtility(Icons.Default.Notifications, "Alerts", Modifier.weight(1f)) { openAppNotificationSettings(ctx) }
                 }
 
                 Row(Modifier.fillMaxWidth().height(if (compact) 158.dp else 178.dp), horizontalArrangement = Arrangement.spacedBy(11.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -326,6 +326,18 @@ private fun setTorch(context: Context, enabled: Boolean): Boolean {
         manager.setTorchMode(id, enabled)
         enabled
     } catch (_: Exception) { false }
+}
+
+private fun openAppNotificationSettings(context: Context) {
+    try {
+        context.startActivity(
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    } catch (_: Exception) {
+        openSettings(context, Settings.ACTION_SETTINGS)
+    }
 }
 
 private fun openCalculator(context: Context) {
