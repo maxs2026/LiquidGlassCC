@@ -202,21 +202,21 @@ private fun IOSControlCenter() {
                 }
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ToolCircle(Icons.Default.FlashlightOn, "Flashlight", Modifier.weight(1f), active = flashlightOn) {
+                    ToolCircle(Icons.Default.FlashlightOn, Modifier.weight(1f), active = flashlightOn) {
                         if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             flashlightOn = setTorch(ctx, !flashlightOn)
                         } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
                     }
-                    ToolCircle(Icons.Default.CameraAlt, "Camera", Modifier.weight(1f)) { openCamera(ctx) }
-                    ToolCircle(Icons.Default.ScreenShare, "Screen cast", Modifier.weight(1f), accent = Color(0xFF54C98B)) {
+                    ToolCircle(Icons.Default.CameraAlt, Modifier.weight(1f)) { openCamera(ctx) }
+                    ToolCircle(Icons.Default.ScreenShare, Modifier.weight(1f), accent = Color(0xFF54C98B)) {
                         openSettings(ctx, Settings.ACTION_CAST_SETTINGS)
                     }
-                    ToolCircle(Icons.Default.QrCodeScanner, "QR scanner", Modifier.weight(1f), accent = Color(0xFFEC719A)) {
+                    ToolCircle(Icons.Default.QrCodeScanner, Modifier.weight(1f), accent = Color(0xFFEC719A)) {
                         openSettings(ctx, Settings.ACTION_SETTINGS)
                     }
                 }
 
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.12", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.13", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -311,14 +311,29 @@ private fun RoundUtility(icon: ImageVector, label: String, modifier: Modifier = 
 }
 
 @Composable
-private fun ToolCircle(icon: ImageVector, label: String, modifier: Modifier = Modifier, active: Boolean = false, accent: Color = Color(0xFF76BFFF), onClick: () -> Unit) {
-    Column(modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        Box(Modifier.size(54.dp).shadow(9.dp, CircleShape).clip(CircleShape)
-            .background(Brush.linearGradient(if (active) listOf(accent, Color(0xFF1767B2)) else listOf(accent.copy(alpha = 0.34f), Color.White.copy(alpha = 0.13f), Color(0xFF111B2A).copy(alpha = 0.36f))))
-            .border(1.dp, Color.White.copy(alpha = 0.28f), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(21.dp))
+private fun ToolCircle(icon: ImageVector, modifier: Modifier = Modifier, active: Boolean = false, accent: Color = Color(0xFF76BFFF), onClick: () -> Unit) {
+    // Keep the original 72dp row slot so removing captions does not shift the
+    // controls or the footer vertically. The visible control matches the
+    // 54dp connectivity circles.
+    Box(modifier.height(72.dp), contentAlignment = Alignment.TopCenter) {
+        Surface(
+            onClick = onClick,
+            modifier = Modifier.size(54.dp),
+            shape = CircleShape,
+            color = Color.Transparent,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
+        ) {
+            Box(
+                Modifier.shadow(9.dp, CircleShape).clip(CircleShape)
+                    .background(Brush.linearGradient(
+                        if (active) listOf(accent, Color(0xFF1767B2))
+                        else listOf(accent.copy(alpha = 0.34f), Color.White.copy(alpha = 0.13f), Color(0xFF111B2A).copy(alpha = 0.36f))
+                    )),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(21.dp))
+            }
         }
-        Text(label, color = mutedGlass.copy(alpha = 0.85f), fontSize = 9.sp, maxLines = 1, textAlign = TextAlign.Center)
     }
 }
 
