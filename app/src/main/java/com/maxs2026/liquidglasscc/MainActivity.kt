@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraManager
-import android.os.BatteryManager
 import android.media.AudioManager
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -17,26 +17,30 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
@@ -48,20 +52,21 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.decorView.systemUiVisibility = (
-            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                or android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
-                or android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                or android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        )
+            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
+                android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            )
         setContent { IOSControlCenter() }
     }
 }
 
-private val glassWhite = Color(0xFFF7F9FF)
-private val glassMuted = Color(0xFFB8C4D8)
-private val glassBlue = Color(0xFF70B9FF)
+private val whiteGlass = Color(0xFFF7F8FC)
+private val mutedGlass = Color(0xFFCFD5E2)
+private val blueGlass = Color(0xFF42A5FF)
+private val panelShape = RoundedCornerShape(30.dp)
 
 @Composable
 private fun IOSControlCenter() {
@@ -71,8 +76,8 @@ private fun IOSControlCenter() {
     var volume by remember { mutableFloatStateOf(audio.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)) }
     var airplane by remember { mutableStateOf(false) }
     var flashlightOn by remember { mutableStateOf(false) }
-    val batteryPercent = remember { readBattery(ctx) }
     var askedPermission by remember { mutableStateOf(false) }
+    val batteryPercent = readBattery(ctx)
     val flashlightPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) flashlightOn = setTorch(ctx, true)
     }
@@ -82,37 +87,36 @@ private fun IOSControlCenter() {
     }
 
     MaterialTheme(colorScheme = darkColorScheme()) {
-        BoxWithConstraints(
-            Modifier.fillMaxSize().background(
-                Brush.linearGradient(
-                    colors = listOf(Color(0xFF080D19), Color(0xFF172B49), Color(0xFF253D5D), Color(0xFF101A2B)),
-                    start = androidx.compose.ui.geometry.Offset.Zero,
-                    end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                )
-            )
-        ) {
-            val compact = maxHeight < 730.dp
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val compact = maxHeight < 760.dp
+            Box(Modifier.fillMaxSize().background(
+                Brush.linearGradient(listOf(Color(0xFF090B12), Color(0xFF252B37), Color(0xFF111722), Color(0xFF080A10)))
+            ))
+            Box(Modifier.size(260.dp).offset(x = (-90).dp, y = 120.dp).blur(75.dp).background(Color(0xFF356C9C).copy(alpha = 0.34f), CircleShape))
+            Box(Modifier.size(240.dp).align(Alignment.BottomEnd).offset(x = 80.dp, y = (-170).dp).blur(80.dp).background(Color(0xFF6A3D75).copy(alpha = 0.24f), CircleShape))
+
             Column(
-                Modifier.fillMaxSize().padding(horizontal = 17.dp, vertical = if (compact) 12.dp else 18.dp),
-                verticalArrangement = Arrangement.spacedBy(if (compact) 11.dp else 15.dp)
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                    .padding(horizontal = 17.dp, vertical = if (compact) 12.dp else 20.dp),
+                verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 15.dp)
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column {
-                        Text("Control Center", color = glassWhite, fontSize = 23.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp)
-                        Text(SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date()), color = glassMuted, fontSize = 11.sp)
+                        Text("Control Center", color = whiteGlass, fontSize = 23.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.6).sp)
+                        Text(SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date()), color = mutedGlass.copy(alpha = 0.75f), fontSize = 11.sp)
                     }
                     Spacer(Modifier.weight(1f))
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(SimpleDateFormat("h:mm", Locale.getDefault()).format(Date()), color = glassWhite, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
-                        Text("$batteryPercent%  •  4G", color = glassMuted, fontSize = 10.sp)
+                        Text(SimpleDateFormat("h:mm", Locale.getDefault()).format(Date()), color = whiteGlass, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
+                        Text(batteryPercent.toString() + "%  •  Android", color = mutedGlass.copy(alpha = 0.78f), fontSize = 10.sp)
                     }
-                    Spacer(Modifier.width(10.dp))
-                    RoundAction(Icons.Default.PowerSettingsNew, glassWhite, if (compact) 39.dp else 43.dp) {
-                        openSettings(ctx, Settings.ACTION_SETTINGS)
-                    }
+                    Spacer(Modifier.width(12.dp))
+                    RoundAction(Icons.Default.Add, 39.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
+                    Spacer(Modifier.width(7.dp))
+                    RoundAction(Icons.Default.PowerSettingsNew, 39.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                 }
 
-                Row(Modifier.fillMaxWidth().height(if (compact) 164.dp else 180.dp), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                Row(Modifier.fillMaxWidth().height(if (compact) 174.dp else 190.dp), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
                     ConnectivityPanel(
                         Modifier.weight(1f),
                         airplane = airplane,
@@ -121,102 +125,105 @@ private fun IOSControlCenter() {
                             openSettings(ctx, Settings.ACTION_AIRPLANE_MODE_SETTINGS)
                         },
                         onWifi = { openSettings(ctx, Settings.Panel.ACTION_WIFI) },
-                        onCellular = { openSettings(ctx, Settings.ACTION_DATA_ROAMING_SETTINGS) },
+                        onCellular = { openSettings(ctx, Settings.ACTION_DATA_USAGE_SETTINGS) },
                         onBluetooth = { openSettings(ctx, Settings.ACTION_BLUETOOTH_SETTINGS) }
                     )
-                    GlassPanel(Modifier.weight(1f), title = "MEDIA") {
-                        Box(
-                            Modifier.size(54.dp)
-                                .shadow(7.dp, CircleShape)
-                                .clip(CircleShape)
-                                .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.27f), Color(0xFFB9D8FF).copy(alpha = 0.12f), Color(0xFF0B1930).copy(alpha = 0.30f))))
-                                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.30f)), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.MusicNote, null, tint = Color.White.copy(alpha = 0.92f), modifier = Modifier.size(23.dp))
+                    GlassPanel(Modifier.weight(1f), padding = 12.dp) {
+                        Box(Modifier.size(54.dp).shadow(8.dp, CircleShape).clip(CircleShape)
+                            .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.30f), Color(0xFF9BCBFF).copy(alpha = 0.15f), Color(0xFF14243A).copy(alpha = 0.34f))))
+                            .border(1.dp, Color.White.copy(alpha = 0.30f), CircleShape), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.MusicNote, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
                         }
-                        Text("Nothing Playing", color = glassWhite, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                        Text("Music controls", color = glassMuted, fontSize = 9.sp)
+                        Text("Not Playing", color = whiteGlass, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.weight(1f))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.SkipPrevious, null, tint = glassMuted, modifier = Modifier.size(19.dp))
-                            Icon(Icons.Default.PlayArrow, null, tint = glassWhite, modifier = Modifier.size(27.dp))
-                            Icon(Icons.Default.SkipNext, null, tint = glassMuted, modifier = Modifier.size(19.dp))
-                        }
-                    }
-                }
-
-                Row(
-                    Modifier.fillMaxWidth().weight(1.12f),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.width(58.dp).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        VerticalSystemSlider(brightness, glassBlue, glassWhite, Icons.Default.Brightness6, Modifier.weight(1f)) { value ->
-                            if (Settings.System.canWrite(ctx)) {
-                                brightness = value
-                                Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
-                            } else if (!askedPermission) {
-                                askedPermission = true
-                                permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:${ctx.packageName}")))
-                            }
-                        }
-                    }
-                    Spacer(Modifier.width(24.dp))
-                    Column(Modifier.width(58.dp).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        VerticalSystemSlider(volume, glassBlue, glassWhite, Icons.Default.VolumeUp, Modifier.weight(1f)) { value ->
-                            volume = value
-                            audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
+                            Icon(Icons.Default.SkipPrevious, null, tint = mutedGlass, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.PlayArrow, null, tint = whiteGlass, modifier = Modifier.size(29.dp))
+                            Icon(Icons.Default.SkipNext, null, tint = mutedGlass, modifier = Modifier.size(20.dp))
                         }
                     }
                 }
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    ShortcutButton(Icons.Default.FlashlightOn, "Flashlight", Modifier.weight(1f)) {
+                    RoundUtility(Icons.Default.ScreenRotation, "Rotation", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DISPLAY_SETTINGS) }
+                    RoundUtility(Icons.Default.Notifications, "Alerts", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_NOTIFICATION_SETTINGS) }
+                }
+
+                Row(Modifier.fillMaxWidth().height(if (compact) 158.dp else 178.dp), horizontalArrangement = Arrangement.spacedBy(11.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        onClick = { openSettings(ctx, Settings.ACTION_SOUND_SETTINGS) },
+                        modifier = Modifier.weight(1.18f).fillMaxHeight(),
+                        shape = RoundedCornerShape(28.dp),
+                        color = Color.White.copy(alpha = 0.13f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))
+                    ) {
+                        Row(Modifier.fillMaxSize().padding(horizontal = 13.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            Box(Modifier.size(34.dp).clip(CircleShape).background(Color(0xFF6C8DEB).copy(alpha = 0.30f)), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Bedtime, null, tint = whiteGlass, modifier = Modifier.size(19.dp))
+                            }
+                            Column {
+                                Text("Focus", color = whiteGlass, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Do Not Disturb", color = mutedGlass.copy(alpha = 0.70f), fontSize = 9.sp)
+                            }
+                            Spacer(Modifier.weight(1f))
+                            Icon(Icons.Default.ExpandMore, null, tint = mutedGlass, modifier = Modifier.size(17.dp))
+                        }
+                    }
+                    VerticalSystemSlider(brightness, blueGlass, whiteGlass, Icons.Default.Brightness6, Modifier.width(61.dp).fillMaxHeight()) { value ->
+                        if (Settings.System.canWrite(ctx)) {
+                            brightness = value
+                            Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
+                        } else if (!askedPermission) {
+                            askedPermission = true
+                            permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + ctx.packageName)))
+                        }
+                    }
+                    VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(61.dp).fillMaxHeight()) { value ->
+                        volume = value
+                        audio.setStreamVolume(AudioManager.STREAM_MUSIC, (value * audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)).toInt(), 0)
+                    }
+                }
+
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ToolCircle(Icons.Default.FlashlightOn, "Flashlight", Modifier.weight(1f), active = flashlightOn) {
                         if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             flashlightOn = setTorch(ctx, !flashlightOn)
                         } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
                     }
-                    ShortcutButton(Icons.Default.Calculate, "Calculator", Modifier.weight(1f)) { openCalculator(ctx) }
-                    ShortcutButton(Icons.Default.QrCodeScanner, "Scanner", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
-                    ShortcutButton(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
+                    ToolCircle(Icons.Default.Timer, "Timer", Modifier.weight(1f)) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
+                    ToolCircle(Icons.Default.Calculate, "Calculator", Modifier.weight(1f)) { openCalculator(ctx) }
+                    ToolCircle(Icons.Default.CameraAlt, "Camera", Modifier.weight(1f)) { openCamera(ctx) }
                 }
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.8", color = glassWhite.copy(alpha = 0.34f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ToolCircle(Icons.Default.ScreenShare, "Screen cast", Modifier.weight(1f), accent = Color(0xFF54C98B)) { openSettings(ctx, Settings.ACTION_CAST_SETTINGS) }
+                    ToolCircle(Icons.Default.QrCodeScanner, "QR scanner", Modifier.weight(1f), accent = Color(0xFFEC719A)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
+                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.weight(1f))
+                }
+
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.9", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
 }
 
 @Composable
-private fun GlassPanel(
-    modifier: Modifier = Modifier,
-    title: String,
-    content: @Composable ColumnScope.() -> Unit
-) {
+private fun GlassPanel(modifier: Modifier = Modifier, padding: Dp = 12.dp, content: @Composable ColumnScope.() -> Unit) {
     Surface(
-        modifier = modifier.fillMaxHeight().shadow(18.dp, RoundedCornerShape(29.dp)),
-        shape = RoundedCornerShape(29.dp),
+        modifier = modifier.fillMaxHeight().shadow(18.dp, panelShape),
+        shape = panelShape,
         color = Color.Transparent,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f))
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
     ) {
         Column(
-            Modifier.fillMaxSize()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.20f),
-                            Color(0xFFB8D8FF).copy(alpha = 0.105f),
-                            Color(0xFF0D1C34).copy(alpha = 0.22f),
-                            Color.White.copy(alpha = 0.075f)
-                        )
-                    ),
-                    RoundedCornerShape(29.dp)
-                )
-                .padding(11.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (title.isNotBlank()) Text(title, color = glassMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.35.sp)
-            content()
-        }
+            Modifier.fillMaxSize().background(
+                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.22f), Color(0xFFB8D8FF).copy(alpha = 0.10f), Color(0xFF0D1C34).copy(alpha = 0.30f), Color.White.copy(alpha = 0.07f))),
+                panelShape
+            ).padding(padding),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
+            content = content
+        )
     }
 }
 
@@ -229,112 +236,76 @@ private fun ConnectivityPanel(
     onCellular: () -> Unit,
     onBluetooth: () -> Unit
 ) {
-    GlassPanel(modifier, title = "") {
+    GlassPanel(modifier, padding = 11.dp) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                ConnectivityCircle("Wi-Fi", Icons.Default.Wifi, false, Modifier.weight(1f), onWifi)
-                ConnectivityCircle("Data", Icons.Default.SignalCellularAlt, false, Modifier.weight(1f), onCellular)
+                ConnectivityCircle(Icons.Default.Wifi, Modifier.weight(1f), onWifi)
+                ConnectivityCircle(Icons.Default.SignalCellularAlt, Modifier.weight(1f), onCellular)
             }
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                ConnectivityCircle("Airplane", Icons.Default.Flight, airplane, Modifier.weight(1f), onAirplane)
-                ConnectivityCircle("Bluetooth", Icons.Default.Bluetooth, false, Modifier.weight(1f), onBluetooth)
+                ConnectivityCircle(Icons.Default.Flight, Modifier.weight(1f), onAirplane, active = airplane)
+                ConnectivityCircle(Icons.Default.Bluetooth, Modifier.weight(1f), onBluetooth)
             }
         }
     }
 }
 
 @Composable
-private fun ConnectivityCircle(
-    label: String,
-    icon: ImageVector,
-    active: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = modifier.fillMaxHeight().clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            Modifier.size(54.dp)
-                .shadow(7.dp, CircleShape)
-                .clip(CircleShape)
-                .background(
-                    Brush.linearGradient(
-                        if (active) listOf(Color(0xFF70BFFF), Color(0xFF1767B2))
-                        else listOf(Color.White.copy(alpha = 0.27f), Color(0xFFB9D8FF).copy(alpha = 0.12f), Color(0xFF0B1930).copy(alpha = 0.30f))
-                    )
-                )
-                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.30f)), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = label, tint = glassWhite, modifier = Modifier.size(23.dp))
+private fun ConnectivityCircle(icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit, active: Boolean = false) {
+    Box(modifier.fillMaxHeight().clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(54.dp).shadow(7.dp, CircleShape).clip(CircleShape)
+            .background(if (active) Brush.linearGradient(listOf(Color(0xFF71C5FF), Color(0xFF1767B2))) else Brush.linearGradient(listOf(Color.White.copy(alpha = 0.30f), Color(0xFFB9D8FF).copy(alpha = 0.13f), Color(0xFF0B1930).copy(alpha = 0.32f))))
+            .border(1.dp, Color.White.copy(alpha = 0.31f), CircleShape), contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
         }
     }
 }
 
 @Composable
-private fun RoundAction(icon: ImageVector, tint: Color, size: androidx.compose.ui.unit.Dp, onClick: () -> Unit) {
+private fun RoundAction(icon: ImageVector, size: Dp, onClick: () -> Unit) {
     Surface(onClick = onClick, shape = CircleShape, color = Color.White.copy(alpha = 0.15f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), modifier = Modifier.size(size)) {
-        Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = tint, modifier = Modifier.size(size * 0.4f)) }
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)), modifier = Modifier.size(size)) {
+        Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(size * 0.42f)) }
     }
 }
 
 @Composable
-private fun ShortcutButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Column(modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.15f), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), modifier = Modifier.size(49.dp)) {
-            Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = glassWhite, modifier = Modifier.size(21.dp)) }
+private fun RoundUtility(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Surface(onClick = onClick, modifier = modifier.height(62.dp), shape = RoundedCornerShape(24.dp),
+        color = Color.White.copy(alpha = 0.15f), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))) {
+        Row(Modifier.fillMaxSize().padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
+            Spacer(Modifier.width(9.dp))
+            Text(label, color = whiteGlass, fontSize = 12.sp, fontWeight = FontWeight.Medium)
         }
-        Text(label, color = glassMuted, fontSize = 9.sp, maxLines = 1)
+    }
+}
+
+@Composable
+private fun ToolCircle(icon: ImageVector, label: String, modifier: Modifier = Modifier, active: Boolean = false, accent: Color = Color(0xFF76BFFF), onClick: () -> Unit) {
+    Column(modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        Box(Modifier.size(55.dp).shadow(9.dp, CircleShape).clip(CircleShape)
+            .background(Brush.linearGradient(if (active) listOf(accent, Color(0xFF1767B2)) else listOf(accent.copy(alpha = 0.34f), Color.White.copy(alpha = 0.13f), Color(0xFF111B2A).copy(alpha = 0.36f))))
+            .border(1.dp, Color.White.copy(alpha = 0.28f), CircleShape), contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
+        }
+        Text(label, color = mutedGlass.copy(alpha = 0.85f), fontSize = 9.sp, maxLines = 1, textAlign = TextAlign.Center)
     }
 }
 
 @Composable
 private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon: ImageVector, modifier: Modifier = Modifier, onValueChange: (Float) -> Unit) {
-    // Narrow iOS-style capsule: the rail is deliberately slim, with its glyph tucked inside.
     Box(
-        modifier = modifier
-            .width(58.dp)
-            .fillMaxHeight()
-            .clip(RoundedCornerShape(32.dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color.White.copy(alpha = 0.25f), Color(0xFFBBD8F8).copy(alpha = 0.15f), Color(0xFF0B1A30).copy(alpha = 0.34f))
-                )
-            )
-            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.32f)), RoundedCornerShape(32.dp))
-            .pointerInput(Unit) {
-                detectTapGestures { tap ->
-                    onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f))
-                }
-            }
-            .pointerInput(Unit) {
-                detectDragGestures { change, _ ->
-                    change.consume()
-                    onValueChange((1f - change.position.y / size.height).coerceIn(0.01f, 1f))
-                }
-            },
+        modifier = modifier.width(61.dp).clip(RoundedCornerShape(32.dp))
+            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.26f), Color(0xFFBBD8F8).copy(alpha = 0.14f), Color(0xFF0B1A30).copy(alpha = 0.38f))))
+            .border(1.dp, Color.White.copy(alpha = 0.32f), RoundedCornerShape(32.dp))
+            .pointerInput(Unit) { detectTapGestures { tap -> onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f)) } }
+            .pointerInput(Unit) { detectDragGestures { change, _ -> change.consume(); onValueChange((1f - change.position.y / size.height).coerceIn(0.01f, 1f)) } },
         contentAlignment = Alignment.BottomCenter
     ) {
-        Box(
-            Modifier.fillMaxWidth()
-                .fillMaxHeight(value.coerceIn(0.01f, 1f))
-                .clip(RoundedCornerShape(32.dp))
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.White.copy(alpha = 0.98f), Color(0xFFEAF5FF).copy(alpha = 0.96f), accent.copy(alpha = 0.88f))
-                    )
-                )
-        )
-        Icon(
-            icon,
-            contentDescription = if (icon == Icons.Default.Brightness6) "Brightness" else "Volume",
-            tint = if (value > 0.48f) Color(0xFF23415F) else white,
-            modifier = Modifier.padding(bottom = 13.dp).size(18.dp)
-        )
+        Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(32.dp))
+            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.98f), Color(0xFFEAF5FF).copy(alpha = 0.96f), accent.copy(alpha = 0.88f)))))
+        Icon(icon, null, tint = if (value > 0.48f) Color(0xFF23415F) else white, modifier = Modifier.padding(bottom = 13.dp).size(19.dp))
     }
 }
 
@@ -357,15 +328,14 @@ private fun setTorch(context: Context, enabled: Boolean): Boolean {
     } catch (_: Exception) { false }
 }
 
-private fun openFlashlightSettings(context: Context) {
-    try { context.startActivity(Intent("android.settings.FLASHLIGHT_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+private fun openCalculator(context: Context) {
+    try { context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     catch (_: Exception) { openSettings(context, Settings.ACTION_SETTINGS) }
 }
 
-private fun openCalculator(context: Context) {
-    try {
-        context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    } catch (_: Exception) { openSettings(context, Settings.ACTION_SETTINGS) }
+private fun openCamera(context: Context) {
+    try { context.startActivity(Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    catch (_: Exception) { openSettings(context, Settings.ACTION_SETTINGS) }
 }
 
 private fun openSettings(context: Context, action: String) {
