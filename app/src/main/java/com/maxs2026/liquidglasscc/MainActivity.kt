@@ -174,7 +174,7 @@ private fun IOSControlCenter() {
 
                 Row(Modifier.weight(0.78f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     LongControl("Flashlight", Icons.Default.FlashlightOn, Modifier.weight(1.25f)) { openSettings(ctx, Settings.ACTION_SETTINGS) }
-                    RoundAction(Icons.Default.Calculator, white, 51.dp) { openCalculator(ctx) }
+                    RoundAction(Icons.Default.Apps, white, 51.dp) { openCalculator(ctx) }
                     RoundAction(Icons.Default.QrCodeScanner, white, 51.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
                     RoundAction(Icons.Default.Timer, white, 51.dp) { openSettings(ctx, Settings.ACTION_DATE_SETTINGS) }
                 }
