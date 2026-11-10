@@ -706,7 +706,7 @@ private fun CustomStatusSettingsScreen(onBack: () -> Unit) {
             .putBoolean(CustomStatusBarOverlay.KEY_WIFI, wifi)
             .putBoolean(CustomStatusBarOverlay.KEY_BATTERY, battery).apply()
         if (isLiquidGlassAccessibilityEnabled(context)) {
-            context.startService(Intent(context, LiquidGlassAccessibilityService::class.java))
+            context.sendBroadcast(Intent(CustomStatusBarOverlay.ACTION_REFRESH).setPackage(context.packageName))
         } else if (enabled) {
             openSettings(context, Settings.ACTION_ACCESSIBILITY_SETTINGS)
         }
