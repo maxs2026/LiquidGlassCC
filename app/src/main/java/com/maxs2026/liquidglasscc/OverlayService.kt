@@ -63,11 +63,15 @@ class OverlayService : LifecycleService() {
     private fun showEdgeHandle() {
         if (edgeHandle != null || overlayView != null) return
         val handle = View(this).apply {
+            val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
+            val location = prefs.getString(KEY_LOCATION, "RIGHT") ?: "RIGHT"
+            val hue = prefs.getInt(KEY_HUE, 210).toFloat()
+            val rgb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.45f, 1f))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dp(18).toFloat()
-                setColor(0x2EFFFFFF)
-                setStroke(dp(1), 0x55FFFFFF)
+                setColor(android.graphics.Color.argb(72, android.graphics.Color.red(rgb), android.graphics.Color.green(rgb), android.graphics.Color.blue(rgb)))
+                setStroke(dp(1), android.graphics.Color.argb(125, android.graphics.Color.red(rgb), android.graphics.Color.green(rgb), android.graphics.Color.blue(rgb)))
             }
             var downY = 0f
             var downX = 0f
@@ -80,8 +84,15 @@ class OverlayService : LifecycleService() {
                     }
                     MotionEvent.ACTION_UP -> {
                         val deltaY = event.rawY - downY
-                        val deltaX = abs(event.rawX - downX)
-                        if (deltaY >= dp(getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_SWIPE, 64)) && deltaY > deltaX * 1.15f) showOverlay()
+                        val deltaX = event.rawX - downX
+                        val threshold = dp(getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_SWIPE, 64))
+                        val triggered = when (location) {
+                            "TOP" -> deltaY >= threshold && deltaY > abs(deltaX) * 1.15f
+                            "BOTTOM" -> -deltaY >= threshold && -deltaY > abs(deltaX) * 1.15f
+                            "LEFT" -> deltaX >= threshold && deltaX > abs(deltaY) * 1.15f
+                            else -> -deltaX >= threshold && -deltaX > abs(deltaY) * 1.15f
+                        }
+                        if (triggered) showOverlay()
                         true
                     }
                     MotionEvent.ACTION_CANCEL -> true
@@ -89,17 +100,29 @@ class OverlayService : LifecycleService() {
                 }
             }
         }
+        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
+        val edgeWidth = dp(prefs.getInt(KEY_WIDTH, 24))
+        val edgeHeight = dp(prefs.getInt(KEY_HEIGHT, 142))
+        val horizontal = location == "TOP" || location == "BOTTOM"
         val params = WindowManager.LayoutParams(
-            dp(getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_WIDTH, 24)),
-            dp(142),
+            if (horizontal) edgeHeight else edgeWidth,
+            if (horizontal) edgeWidth else edgeHeight,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.TOP or Gravity.END
-            y = dp(18)
+            gravity = when (location) {
+                "TOP" -> Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                "BOTTOM" -> Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                "LEFT" -> Gravity.CENTER_VERTICAL or Gravity.START
+                else -> Gravity.CENTER_VERTICAL or Gravity.END
+            }
+            if (location == "TOP") y = dp(18)
+            if (location == "BOTTOM") y = dp(18)
+            if (location == "LEFT") x = dp(2)
+            if (location == "RIGHT") x = dp(2)
         }
         edgeHandle = handle
         windowManager.addView(handle, params)
@@ -165,6 +188,9 @@ class OverlayService : LifecycleService() {
         const val PREFS = "liquidglass_gesture_settings"
         const val KEY_WIDTH = "edge_width_dp"
         const val KEY_SWIPE = "swipe_distance_dp"
+        const val KEY_HEIGHT = "edge_height_dp"
+        const val KEY_LOCATION = "edge_location"
+        const val KEY_HUE = "edge_hue"
         private const val CHANNEL_ID = "liquidglass_overlay"
         private const val NOTIFICATION_ID = 2601
     }
