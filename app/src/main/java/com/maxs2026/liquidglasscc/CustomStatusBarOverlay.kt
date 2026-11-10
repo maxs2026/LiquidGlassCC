@@ -90,13 +90,15 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
         right.addView(signal); right.addView(wifi); right.addView(battery)
         bar.addView(right)
 
-        bar.setOnTouchListener { _, event ->
+        bar.isClickable = true
+        bar.setOnClickListener { openControlCenter() }
+        bar.setOnTouchListener { view, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> { downY = event.rawY; swipeTriggered = false; true }
                 MotionEvent.ACTION_MOVE -> {
                     if (!swipeTriggered && event.rawY - downY > dp(prefs.getInt(OverlayService.KEY_SWIPE, 64).coerceIn(24, 160))) {
                         swipeTriggered = true
-                        service.startService(Intent(service, OverlayService::class.java).setAction(OverlayService.ACTION_SHOW))
+                        openControlCenter()
                     }
                     true
                 }
@@ -127,6 +129,16 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
         } catch (e: Exception) {
             android.util.Log.e("LiquidGlassCC", "Status strip attach failed", e)
             root = null
+        }
+    }
+
+    private fun openControlCenter() {
+        try {
+            val intent = Intent(service, OverlayService::class.java).setAction(OverlayService.ACTION_SHOW)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) service.startForegroundService(intent)
+            else service.startService(intent)
+        } catch (e: Exception) {
+            android.util.Log.e("LiquidGlassCC", "Status strip could not open Control Center", e)
         }
     }
 
