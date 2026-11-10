@@ -88,7 +88,7 @@ internal fun IOSControlCenter(isOverlay: Boolean) {
     var flashlightOn by remember { mutableStateOf(false) }
     var askedPermission by remember { mutableStateOf(false) }
     val gesturePrefs = remember { ctx.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
-    var edgeWidth by remember { mutableFloatStateOf(gesturePrefs.getInt(OverlayService.KEY_WIDTH, 24).toFloat()) }
+    var edgeWidth by remember { mutableFloatStateOf(gesturePrefs.getInt(OverlayService.KEY_WIDTH, 64).toFloat()) }
     var swipeDistance by remember { mutableFloatStateOf(gesturePrefs.getInt(OverlayService.KEY_SWIPE, 64).toFloat()) }
     val batteryPercent = readBattery(ctx)
 
@@ -265,7 +265,7 @@ internal fun IOSControlCenter(isOverlay: Boolean) {
                                     val refresh = Intent(ctx, OverlayService::class.java).setAction(OverlayService.ACTION_REFRESH_SETTINGS)
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) ctx.startForegroundService(refresh) else ctx.startService(refresh)
                                 },
-                                valueRange = 12f..64f
+                                valueRange = 32f..120f
                             )
                             Text("Swipe-down distance: ${swipeDistance.toInt()} dp", color = mutedGlass, fontSize = 12.sp)
                             Slider(
@@ -604,7 +604,7 @@ private fun AppearanceSettingsScreen(onBack: () -> Unit) {
     val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
     var location by remember { mutableStateOf(prefs.getString(OverlayService.KEY_LOCATION, "TOP_RIGHT") ?: "TOP_RIGHT") }
     var edgeWidth by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_WIDTH, 24).toFloat()) }
-    var edgeHeight by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HEIGHT, 142).toFloat()) }
+    var edgeHeight by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HEIGHT, 220).toFloat()) }
     var hue by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HUE, 210).toFloat()) }
     MaterialTheme(colorScheme = lightColorScheme()) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -637,7 +637,7 @@ private fun AppearanceSettingsScreen(onBack: () -> Unit) {
                     Slider(value = edgeWidth, onValueChange = { edgeWidth = it; prefs.edit().putInt(OverlayService.KEY_WIDTH, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 12f..64f)
                     Divider()
                     Text("Height · ${edgeHeight.toInt()} dp", color = Color.Gray)
-                    Slider(value = edgeHeight, onValueChange = { edgeHeight = it; prefs.edit().putInt(OverlayService.KEY_HEIGHT, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 60f..320f)
+                    Slider(value = edgeHeight, onValueChange = { edgeHeight = it; prefs.edit().putInt(OverlayService.KEY_HEIGHT, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 120f..420f)
                 }
             }
             Text("COLOR", color = Color.Gray, fontSize = 13.sp)
