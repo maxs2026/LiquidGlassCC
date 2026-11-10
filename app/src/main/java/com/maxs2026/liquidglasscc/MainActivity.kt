@@ -49,6 +49,15 @@ import java.util.Date
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+    override fun onResume() {
+        super.onResume()
+        val prefs = getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean("enabled", false) && Settings.canDrawOverlays(this)) {
+            val intent = Intent(this, OverlayService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+        }
+    }
+
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -478,8 +487,9 @@ private fun AppSettingsScreen() {
     val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
     var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", false)) }
     var showAppearance by remember { mutableStateOf(false) }
-    val overlayGranted = Settings.canDrawOverlays(context)
-    val writeGranted = Settings.System.canWrite(context)
+    var overlayGranted by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
+    var writeGranted by remember { mutableStateOf(Settings.System.canWrite(context)) }
+    var notificationAccessGranted by remember { mutableStateOf(isNotificationListenerEnabled(context)) }
     val notificationGranted = Build.VERSION.SDK_INT < 33 || context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
     MaterialTheme(colorScheme = lightColorScheme()) {
@@ -508,6 +518,20 @@ private fun AppSettingsScreen() {
                             })
                         }
                     }
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            if (!Settings.canDrawOverlays(context)) {
+                                context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            } else {
+                                val openIntent = Intent(context, OverlayService::class.java).setAction(OverlayService.ACTION_SHOW)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(openIntent) else context.startService(openIntent)
+                            }
+                        },
+                        shape = RoundedCornerShape(18.dp),
+                        color = Color(0xFF1677E8)
+                    ) {
+                        Text("Open Control Center now", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(16.dp))
+                    }
                     Text("PERMISSIONS", color = Color.Gray, fontSize = 13.sp, modifier = Modifier.padding(start = 16.dp, top = 2.dp))
                     Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
                         Column {
@@ -517,7 +541,7 @@ private fun AppSettingsScreen() {
                             PermissionSettingRow(Icons.Default.Tune, "Change system settings", "Brightness, timeout, rotation", writeGranted) {
                                 context.startActivity(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                             }
-                            PermissionSettingRow(Icons.Default.Notifications, "Notification access", "Music card and playback", false) {
+                            PermissionSettingRow(Icons.Default.Notifications, "Notification access", "Music card and playback", notificationAccessGranted) {
                                 openSettings(context, "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
                             }
                             PermissionSettingRow(Icons.Default.NotificationsActive, "Allow notifications", "Background status and results", notificationGranted) {
@@ -632,6 +656,11 @@ private fun refreshOverlayService(context: Context) {
     if (!prefsEnabled(context)) return
     val intent = Intent(context, OverlayService::class.java).setAction(OverlayService.ACTION_REFRESH_SETTINGS)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent) else context.startService(intent)
+}
+
+private fun isNotificationListenerEnabled(context: Context): Boolean {
+    val enabled = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners") ?: return false
+    return enabled.split(":").any { it.contains(context.packageName) }
 }
 
 private fun prefsEnabled(context: Context): Boolean =
