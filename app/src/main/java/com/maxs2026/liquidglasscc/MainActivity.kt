@@ -70,7 +70,7 @@ private val blueGlass = Color(0xFF42A5FF)
 private val panelShape = RoundedCornerShape(30.dp)
 
 @Composable
-private fun IOSControlCenter(isOverlay: Boolean) {
+internal fun IOSControlCenter(isOverlay: Boolean) {
     val ctx = LocalContext.current
     val audio = remember { ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     var brightness by remember { mutableFloatStateOf(readBrightness(ctx)) }
