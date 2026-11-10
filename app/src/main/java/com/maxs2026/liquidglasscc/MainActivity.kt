@@ -602,7 +602,7 @@ private fun GeneralSettingRow(icon: ImageVector, title: String, onClick: () -> U
 private fun AppearanceSettingsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
-    var location by remember { mutableStateOf(prefs.getString(OverlayService.KEY_LOCATION, "RIGHT") ?: "RIGHT") }
+    var location by remember { mutableStateOf(prefs.getString(OverlayService.KEY_LOCATION, "TOP_RIGHT") ?: "TOP_RIGHT") }
     var edgeWidth by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_WIDTH, 24).toFloat()) }
     var edgeHeight by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HEIGHT, 142).toFloat()) }
     var hue by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HUE, 210).toFloat()) }
@@ -616,14 +616,14 @@ private fun AppearanceSettingsScreen(onBack: () -> Unit) {
             Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
                 Column(Modifier.padding(12.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        listOf("TOP", "BOTTOM", "LEFT", "RIGHT").forEach { option ->
+                        listOf("TOP_RIGHT", "TOP", "BOTTOM", "LEFT", "RIGHT").forEach { option ->
                             Column(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).clickable {
                                 location = option
                                 prefs.edit().putString(OverlayService.KEY_LOCATION, option).apply()
                                 refreshOverlayService(context)
                             }.padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(Icons.Default.Smartphone, null, tint = if (location == option) Color(0xFF087FF5) else Color.DarkGray, modifier = Modifier.size(42.dp))
-                                Text(option.lowercase().replaceFirstChar { it.uppercase() }, color = if (location == option) Color(0xFF087FF5) else Color.Black, fontSize = 12.sp)
+                                Text(if (option == "TOP_RIGHT") "Top right" else option.lowercase().replaceFirstChar { it.uppercase() }, color = if (location == option) Color(0xFF087FF5) else Color.Black, fontSize = 12.sp)
                             }
                         }
                     }
