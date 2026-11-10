@@ -116,13 +116,13 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT, height,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
-        ).apply { gravity = Gravity.TOP or Gravity.START; x = 0; y = dp(prefs.getInt(KEY_BAR_TOP, 0).coerceIn(0, 16)) }
+        ).apply { gravity = Gravity.TOP or Gravity.START; x = 0; y = dp(prefs.getInt(KEY_BAR_TOP, 0).coerceIn(0, 16)); if (Build.VERSION.SDK_INT >= 28) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS }
         try {
             wm.addView(bar, params)
             root = bar
-            android.util.Log.i("LiquidGlassCC", "Custom status strip attached successfully")
+            android.util.Log.i("LiquidGlassCC", "Custom status strip attached successfully at y=${params.y}, height=$height")
             handler.post(refresh)
             val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
             if (Build.VERSION.SDK_INT >= 33) service.registerReceiver(batteryReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
