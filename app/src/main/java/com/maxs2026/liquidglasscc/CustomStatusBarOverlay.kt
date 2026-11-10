@@ -122,6 +122,7 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
         try {
             wm.addView(bar, params)
             root = bar
+            android.util.Log.i("LiquidGlassCC", "Custom status strip attached successfully")
             handler.post(refresh)
             val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
             if (Build.VERSION.SDK_INT >= 33) service.registerReceiver(batteryReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
