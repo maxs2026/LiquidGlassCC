@@ -123,8 +123,8 @@ private fun IOSControlCenter() {
                     )
                     GlassPanel(Modifier.weight(1f), padding = 12.dp) {
                         Box(Modifier.size(54.dp).shadow(8.dp, CircleShape).clip(CircleShape)
-                            .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.30f), Color(0xFF9BCBFF).copy(alpha = 0.15f), Color(0xFF14243A).copy(alpha = 0.34f))))
-                            .border(1.dp, Color.White.copy(alpha = 0.30f), CircleShape), contentAlignment = Alignment.Center) {
+                            .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.42f), Color(0xFFB9DFFF).copy(alpha = 0.22f), Color(0xFF203B5A).copy(alpha = 0.38f))))
+                            .border(1.dp, Color.White.copy(alpha = 0.42f), CircleShape), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.MusicNote, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
                         }
                         Text("Not Playing", color = whiteGlass, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
@@ -162,8 +162,8 @@ private fun IOSControlCenter() {
                             onClick = { openSettings(ctx, Settings.ACTION_SOUND_SETTINGS) },
                             modifier = Modifier.fillMaxWidth().height(68.dp),
                             shape = RoundedCornerShape(36.dp),
-                            color = Color.White.copy(alpha = 0.17f),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
+                            color = Color.White.copy(alpha = 0.13f),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.34f))
                         ) {
                             Row(
                                 Modifier.fillMaxSize().padding(horizontal = 14.dp),
@@ -172,7 +172,7 @@ private fun IOSControlCenter() {
                             ) {
                                 Box(
                                     Modifier.size(38.dp).clip(CircleShape)
-                                        .background(Color(0xFF718FF0).copy(alpha = 0.34f)),
+                                        .background(Brush.linearGradient(listOf(Color(0xFF8BA7FF).copy(alpha = 0.58f), Color(0xFF435FAE).copy(alpha = 0.32f), Color(0xFF273D73).copy(alpha = 0.40f)))),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(Icons.Default.Bedtime, null, tint = whiteGlass, modifier = Modifier.size(22.dp))
@@ -216,7 +216,7 @@ private fun IOSControlCenter() {
                     }
                 }
 
-                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.14", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("LIQUID GLASS  •  CONTROL CENTER  •  v1.15", color = whiteGlass.copy(alpha = 0.30f), fontSize = 8.sp, letterSpacing = 2.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -227,14 +227,20 @@ private fun GlassPanel(modifier: Modifier = Modifier, padding: Dp = 12.dp, conte
     Surface(
         modifier = modifier.fillMaxHeight().shadow(18.dp, panelShape),
         shape = panelShape,
-        color = Color.Transparent,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
+        color = Color.White.copy(alpha = 0.045f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.36f))
     ) {
         Column(
-            Modifier.fillMaxSize().background(
-                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.22f), Color(0xFFB8D8FF).copy(alpha = 0.10f), Color(0xFF0D1C34).copy(alpha = 0.30f), Color.White.copy(alpha = 0.07f))),
-                panelShape
-            ).padding(padding),
+            Modifier.fillMaxSize()
+                .background(Brush.linearGradient(listOf(
+                    Color.White.copy(alpha = 0.30f),
+                    Color(0xFFBBDFFF).copy(alpha = 0.16f),
+                    Color(0xFF7898B9).copy(alpha = 0.10f),
+                    Color(0xFF071426).copy(alpha = 0.34f),
+                    Color.White.copy(alpha = 0.12f)
+                )), panelShape)
+                .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.11f), Color.Transparent, Color(0xFF06101E).copy(alpha = 0.12f))), panelShape)
+                .padding(padding),
             verticalArrangement = Arrangement.spacedBy(9.dp),
             content = content
         )
@@ -268,8 +274,8 @@ private fun ConnectivityPanel(
 private fun ConnectivityCircle(icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit, active: Boolean = false) {
     Box(modifier.fillMaxHeight().clickable(onClick = onClick), contentAlignment = Alignment.Center) {
         Box(Modifier.size(54.dp).shadow(7.dp, CircleShape).clip(CircleShape)
-            .background(if (active) Brush.linearGradient(listOf(Color(0xFF71C5FF), Color(0xFF1767B2))) else Brush.linearGradient(listOf(Color.White.copy(alpha = 0.30f), Color(0xFFB9D8FF).copy(alpha = 0.13f), Color(0xFF0B1930).copy(alpha = 0.32f))))
-            .border(1.dp, Color.White.copy(alpha = 0.31f), CircleShape), contentAlignment = Alignment.Center) {
+            .background(if (active) Brush.linearGradient(listOf(Color(0xFF79C9FF), Color(0xFF268BE5), Color(0xFF12518F))) else Brush.linearGradient(listOf(Color.White.copy(alpha = 0.43f), Color(0xFFBBDFFF).copy(alpha = 0.23f), Color(0xFF182D47).copy(alpha = 0.42f))))
+            .border(1.dp, Color.White.copy(alpha = 0.43f), CircleShape), contentAlignment = Alignment.Center) {
             Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(23.dp))
         }
     }
@@ -289,10 +295,15 @@ private fun RoundUtilityCircle(icon: ImageVector, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier.size(62.dp),
         shape = CircleShape,
-        color = Color.White.copy(alpha = 0.16f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.30f))
+        color = Color.White.copy(alpha = 0.10f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.40f))
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            Modifier.fillMaxSize()
+                .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.36f), Color(0xFFB9DFFF).copy(alpha = 0.20f), Color(0xFF1B3048).copy(alpha = 0.34f))), CircleShape)
+                .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.12f), Color.Transparent, Color.Black.copy(alpha = 0.10f))), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
             Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(29.dp))
         }
     }
@@ -327,8 +338,9 @@ private fun ToolCircle(icon: ImageVector, modifier: Modifier = Modifier, active:
                 Modifier.shadow(9.dp, CircleShape).clip(CircleShape)
                     .background(Brush.linearGradient(
                         if (active) listOf(accent, Color(0xFF1767B2))
-                        else listOf(accent.copy(alpha = 0.34f), Color.White.copy(alpha = 0.13f), Color(0xFF111B2A).copy(alpha = 0.36f))
-                    )),
+                        else listOf(accent.copy(alpha = 0.43f), Color.White.copy(alpha = 0.25f), Color(0xFF17263A).copy(alpha = 0.48f))
+                    ))
+                    .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.17f), Color.Transparent, Color.Black.copy(alpha = 0.12f)))),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, null, tint = whiteGlass, modifier = Modifier.size(29.dp))
@@ -341,14 +353,14 @@ private fun ToolCircle(icon: ImageVector, modifier: Modifier = Modifier, active:
 private fun VerticalSystemSlider(value: Float, accent: Color, white: Color, icon: ImageVector, modifier: Modifier = Modifier, onValueChange: (Float) -> Unit) {
     Box(
         modifier = modifier.clip(RoundedCornerShape(32.dp))
-            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.26f), Color(0xFFBBD8F8).copy(alpha = 0.14f), Color(0xFF0B1A30).copy(alpha = 0.38f))))
-            .border(1.dp, Color.White.copy(alpha = 0.32f), RoundedCornerShape(32.dp))
+            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.36f), Color(0xFFBBD8F8).copy(alpha = 0.20f), Color(0xFF263B56).copy(alpha = 0.42f))))
+            .border(1.dp, Color.White.copy(alpha = 0.42f), RoundedCornerShape(32.dp))
             .pointerInput(Unit) { detectTapGestures { tap -> onValueChange((1f - tap.y / size.height).coerceIn(0.01f, 1f)) } }
             .pointerInput(Unit) { detectDragGestures { change, _ -> change.consume(); onValueChange((1f - change.position.y / size.height).coerceIn(0.01f, 1f)) } },
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(Modifier.fillMaxWidth().fillMaxHeight(value.coerceIn(0.01f, 1f)).clip(RoundedCornerShape(32.dp))
-            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.98f), Color(0xFFEAF5FF).copy(alpha = 0.96f), accent.copy(alpha = 0.88f)))))
+            .background(Brush.verticalGradient(listOf(Color.White, Color(0xFFF1F8FF), Color(0xFFBBDFFF), accent.copy(alpha = 0.94f)))))
         Icon(icon, null, tint = if (icon == Icons.Default.WbSunny) Color(0xFFFFC928) else Color(0xFF16B8D4), modifier = Modifier.padding(bottom = 28.dp).size(18.dp))
     }
 }
