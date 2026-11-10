@@ -83,6 +83,11 @@ internal fun IOSControlCenter(isOverlay: Boolean) {
     var swipeDistance by remember { mutableFloatStateOf(gesturePrefs.getInt(OverlayService.KEY_SWIPE, 64).toFloat()) }
     val batteryPercent = readBattery(ctx)
 
+    if (!isOverlay) {
+        AppSettingsScreen()
+        return
+    }
+
     MaterialTheme(colorScheme = darkColorScheme()) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val compact = maxHeight < 760.dp
@@ -465,3 +470,169 @@ private fun openSettings(context: Context, action: String) {
     try { context.startActivity(Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     catch (_: Exception) { context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
 }
+
+
+@Composable
+private fun AppSettingsScreen() {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
+    var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", false)) }
+    var showAppearance by remember { mutableStateOf(false) }
+    val overlayGranted = Settings.canDrawOverlays(context)
+    val writeGranted = Settings.System.canWrite(context)
+    val notificationGranted = Build.VERSION.SDK_INT < 33 || context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+    MaterialTheme(colorScheme = lightColorScheme()) {
+        Surface(Modifier.fillMaxSize(), color = Color(0xFFF2F1F7)) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (showAppearance) {
+                    AppearanceSettingsScreen(onBack = { showAppearance = false })
+                } else {
+                    Text("Control Center", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.padding(top = 24.dp, bottom = 6.dp))
+                    Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("Enable", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                            Switch(checked = enabled, onCheckedChange = { value ->
+                                enabled = value
+                                prefs.edit().putBoolean("enabled", value).apply()
+                                if (value) {
+                                    if (!Settings.canDrawOverlays(context)) {
+                                        context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                    } else {
+                                        val i = Intent(context, OverlayService::class.java)
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(i) else context.startService(i)
+                                    }
+                                } else {
+                                    context.stopService(Intent(context, OverlayService::class.java))
+                                }
+                            })
+                        }
+                    }
+                    Text("PERMISSIONS", color = Color.Gray, fontSize = 13.sp, modifier = Modifier.padding(start = 16.dp, top = 2.dp))
+                    Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
+                        Column {
+                            PermissionSettingRow(Icons.Default.Layers, "Display over other apps", "Show the panel over any app", overlayGranted) {
+                                context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            }
+                            PermissionSettingRow(Icons.Default.Tune, "Change system settings", "Brightness, timeout, rotation", writeGranted) {
+                                context.startActivity(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            }
+                            PermissionSettingRow(Icons.Default.Notifications, "Notification access", "Music card and playback", false) {
+                                openSettings(context, "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
+                            }
+                            PermissionSettingRow(Icons.Default.NotificationsActive, "Allow notifications", "Background status and results", notificationGranted) {
+                                if (Build.VERSION.SDK_INT >= 33) context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            }
+                            PermissionSettingRow(Icons.Default.DoNotDisturbOn, "Do Not Disturb access", "Do Not Disturb and ringer · Optional", false) {
+                                openSettings(context, Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                            }
+                            PermissionSettingRow(Icons.Default.Bluetooth, "Nearby devices", "Turn Bluetooth on · Optional", false) {
+                                openSettings(context, Settings.ACTION_BLUETOOTH_SETTINGS)
+                            }
+                        }
+                    }
+                    if (!overlayGranted || !writeGranted) {
+                        Text("Turn on the required permissions to enable Control Center.", color = Color(0xFFE39A25), fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp))
+                    }
+                    Text("GENERAL", color = Color.Gray, fontSize = 13.sp, modifier = Modifier.padding(start = 16.dp, top = 4.dp))
+                    Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
+                        Column {
+                            GeneralSettingRow(Icons.Default.WaterDrop, "Appearance") { showAppearance = true }
+                            GeneralSettingRow(Icons.Default.Settings, "Customize Controls") { showAppearance = true }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PermissionSettingRow(icon: ImageVector, title: String, subtitle: String, granted: Boolean, onClick: () -> Unit) {
+    Column {
+        Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(Modifier.size(42.dp), shape = RoundedCornerShape(12.dp), color = Color(0xFF3479E8)) {
+                Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = Color.White, modifier = Modifier.size(23.dp)) }
+            }
+            Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                Text(title, color = Color.Black, fontSize = 16.sp)
+                Text(subtitle, color = Color.Gray, fontSize = 12.sp)
+            }
+            Switch(checked = granted, onCheckedChange = { onClick() })
+        }
+        Divider(color = Color(0xFFE5E5E5), modifier = Modifier.padding(start = 72.dp))
+    }
+}
+
+@Composable
+private fun GeneralSettingRow(icon: ImageVector, title: String, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 18.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, null, tint = Color(0xFF8B55D9), modifier = Modifier.size(28.dp))
+        Text(title, color = Color.Black, fontSize = 17.sp, modifier = Modifier.padding(start = 18.dp))
+        Spacer(Modifier.weight(1f))
+        Icon(Icons.Default.ChevronRight, null, tint = Color.LightGray)
+    }
+}
+
+@Composable
+private fun AppearanceSettingsScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
+    var location by remember { mutableStateOf(prefs.getString(OverlayService.KEY_LOCATION, "RIGHT") ?: "RIGHT") }
+    var edgeWidth by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_WIDTH, 24).toFloat()) }
+    var edgeHeight by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HEIGHT, 142).toFloat()) }
+    var hue by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HUE, 210).toFloat()) }
+    MaterialTheme(colorScheme = lightColorScheme()) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null, tint = Color(0xFF1684EA)) }
+                Text("Appearance", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Text("CHANGE THE LOCATION", color = Color.Gray, fontSize = 13.sp)
+            Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
+                Column(Modifier.padding(12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf("TOP", "BOTTOM", "LEFT", "RIGHT").forEach { option ->
+                            Column(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).clickable {
+                                location = option
+                                prefs.edit().putString(OverlayService.KEY_LOCATION, option).apply()
+                                refreshOverlayService(context)
+                            }.padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.Smartphone, null, tint = if (location == option) Color(0xFF087FF5) else Color.DarkGray, modifier = Modifier.size(42.dp))
+                                Text(option.lowercase().replaceFirstChar { it.uppercase() }, color = if (location == option) Color(0xFF087FF5) else Color.Black, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+            }
+            Text("You can change where the swipe gesture starts.", color = Color.Gray, fontSize = 13.sp)
+            Text("SIZE", color = Color.Gray, fontSize = 13.sp)
+            Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Width · ${edgeWidth.toInt()} dp", color = Color.Gray)
+                    Slider(value = edgeWidth, onValueChange = { edgeWidth = it; prefs.edit().putInt(OverlayService.KEY_WIDTH, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 12f..64f)
+                    Divider()
+                    Text("Height · ${edgeHeight.toInt()} dp", color = Color.Gray)
+                    Slider(value = edgeHeight, onValueChange = { edgeHeight = it; prefs.edit().putInt(OverlayService.KEY_HEIGHT, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 60f..320f)
+                }
+            }
+            Text("COLOR", color = Color.Gray, fontSize = 13.sp)
+            Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
+                Column(Modifier.padding(18.dp)) {
+                    Text("Choose color", color = Color.Gray)
+                    Slider(value = hue, onValueChange = { hue = it; prefs.edit().putInt(OverlayService.KEY_HUE, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 0f..360f)
+                    Box(Modifier.fillMaxWidth().height(28.dp).clip(RoundedCornerShape(14.dp)).background(Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.45f, 1f)))))
+                }
+            }
+        }
+    }
+}
+
+private fun refreshOverlayService(context: Context) {
+    if (!prefsEnabled(context)) return
+    val intent = Intent(context, OverlayService::class.java).setAction(OverlayService.ACTION_REFRESH_SETTINGS)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent) else context.startService(intent)
+}
+
+private fun prefsEnabled(context: Context): Boolean =
+    context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE).getBoolean("enabled", false)
