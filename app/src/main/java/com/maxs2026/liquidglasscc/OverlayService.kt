@@ -14,7 +14,7 @@ import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.ViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
 import kotlin.math.abs
 
 class OverlayService : LifecycleService() {
@@ -108,7 +108,7 @@ class OverlayService : LifecycleService() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setContent { IOSControlCenter(isOverlay = true) }
         }
-        ViewTreeLifecycleOwner.set(composeView, this)
+        composeView.setViewTreeLifecycleOwner(this)
         val windowFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
