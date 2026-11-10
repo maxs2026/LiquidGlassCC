@@ -541,6 +541,9 @@ private fun AppSettingsScreen() {
                             PermissionSettingRow(Icons.Default.Tune, "Change system settings", "Brightness, timeout, rotation", writeGranted) {
                                 context.startActivity(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                             }
+                            PermissionSettingRow(Icons.Default.Accessibility, "Accessibility service", "Enable LiquidGlassCC in Accessibility settings", isLiquidGlassAccessibilityEnabled(context)) {
+                                openSettings(context, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                            }
                             PermissionSettingRow(Icons.Default.Notifications, "Notification access", "Music card and playback", notificationAccessGranted) {
                                 openSettings(context, "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
                             }
@@ -656,6 +659,19 @@ private fun refreshOverlayService(context: Context) {
     if (!prefsEnabled(context)) return
     val intent = Intent(context, OverlayService::class.java).setAction(OverlayService.ACTION_REFRESH_SETTINGS)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent) else context.startService(intent)
+}
+
+
+private fun isLiquidGlassAccessibilityEnabled(context: Context): Boolean {
+    val enabledServices = Settings.Secure.getString(
+        context.contentResolver,
+        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+    ) ?: return false
+    val expected = android.content.ComponentName(
+        context,
+        LiquidGlassAccessibilityService::class.java
+    ).flattenToString()
+    return enabledServices.split(':').any { it.equals(expected, ignoreCase = true) }
 }
 
 private fun isNotificationListenerEnabled(context: Context): Boolean {
