@@ -10,6 +10,7 @@ import android.os.IBinder
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.widget.FrameLayout
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -66,47 +67,57 @@ class OverlayService : LifecycleService() {
         val location = prefs.getString(KEY_LOCATION, "TOP_RIGHT") ?: "TOP_RIGHT"
         val hue = prefs.getInt(KEY_HUE, 210).toFloat()
         val rgb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.45f, 1f))
-        val handle = View(this).apply {
-            background = GradientDrawable().apply {
+        val handleWidth = dp(prefs.getInt(KEY_WIDTH, 64).coerceIn(32, 120))
+        val handleHeight = dp(prefs.getInt(KEY_HEIGHT, 220).coerceIn(120, 420))
+        val horizontal = location == "TOP" || location == "BOTTOM"
+
+        val container = FrameLayout(this).apply {
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            val pill = View(this@OverlayService)
+            pill.background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(18).toFloat()
-                setColor(android.graphics.Color.argb(72, android.graphics.Color.red(rgb), android.graphics.Color.green(rgb), android.graphics.Color.blue(rgb)))
-                setStroke(dp(1), android.graphics.Color.argb(125, android.graphics.Color.red(rgb), android.graphics.Color.green(rgb), android.graphics.Color.blue(rgb)))
+                cornerRadius = dp(8).toFloat()
+                setColor(android.graphics.Color.argb(90, android.graphics.Color.red(rgb), android.graphics.Color.green(rgb), android.graphics.Color.blue(rgb)))
+                setStroke(dp(1), android.graphics.Color.argb(150, android.graphics.Color.red(rgb), android.graphics.Color.green(rgb), android.graphics.Color.blue(rgb)))
             }
-            var downX = 0f
-            var downY = 0f
-            setOnTouchListener { _, event ->
-                when (event.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> {
-                        downX = event.rawX
-                        downY = event.rawY
-                        true
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        val deltaX = event.rawX - downX
-                        val deltaY = event.rawY - downY
-                        val threshold = dp(prefs.getInt(KEY_SWIPE, 64))
-                        val triggered = when (location) {
-                            "TOP_RIGHT" -> deltaY >= threshold && deltaY > abs(deltaX) * 1.15f
-                            "TOP" -> deltaY >= threshold && deltaY > abs(deltaX) * 1.15f
-                            "BOTTOM" -> -deltaY >= threshold && -deltaY > abs(deltaX) * 1.15f
-                            "LEFT" -> deltaX >= threshold && deltaX > abs(deltaY) * 1.15f
-                            else -> -deltaX >= threshold && -deltaX > abs(deltaY) * 1.15f
-                        }
-                        if (triggered) showOverlay()
-                        true
-                    }
-                    MotionEvent.ACTION_CANCEL -> true
-                    else -> true
+            val pillParams = if (horizontal) {
+                FrameLayout.LayoutParams(dp(48), dp(5), Gravity.CENTER)
+            } else {
+                FrameLayout.LayoutParams(dp(5), dp(48), if (location == "LEFT") Gravity.START or Gravity.CENTER_VERTICAL else Gravity.END or Gravity.CENTER_VERTICAL)
+            }
+            addView(pill, pillParams)
+        }
+
+        var downX = 0f
+        var downY = 0f
+        container.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.rawX
+                    downY = event.rawY
+                    true
                 }
+                MotionEvent.ACTION_UP -> {
+                    val dx = event.rawX - downX
+                    val dy = event.rawY - downY
+                    val threshold = dp(prefs.getInt(KEY_SWIPE, 64).coerceIn(24, 160))
+                    val triggered = when (location) {
+                        "BOTTOM" -> -dy >= threshold && -dy > abs(dx) * 1.10f
+                        "LEFT" -> dx >= threshold && dx > abs(dy) * 1.10f
+                        "RIGHT" -> -dx >= threshold && -dx > abs(dy) * 1.10f
+                        else -> dy >= threshold && dy > abs(dx) * 1.10f
+                    }
+                    if (triggered) showOverlay()
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> true
+                else -> true
             }
         }
-        val edgeWidth = dp(prefs.getInt(KEY_WIDTH, 24))
-        val edgeHeight = dp(prefs.getInt(KEY_HEIGHT, 142))
-        val horizontal = location == "TOP" || location == "BOTTOM"
+
         val params = WindowManager.LayoutParams(
-            if (horizontal) edgeHeight else edgeWidth,
-            if (horizontal) edgeWidth else edgeHeight,
+            if (horizontal) handleHeight else handleWidth,
+            if (horizontal) handleWidth else handleHeight,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
@@ -114,17 +125,22 @@ class OverlayService : LifecycleService() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = when (location) {
-                "TOP_RIGHT" -> Gravity.TOP or Gravity.END
                 "TOP" -> Gravity.TOP or Gravity.CENTER_HORIZONTAL
                 "BOTTOM" -> Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
                 "LEFT" -> Gravity.CENTER_VERTICAL or Gravity.START
-                else -> Gravity.CENTER_VERTICAL or Gravity.END
+                "RIGHT" -> Gravity.CENTER_VERTICAL or Gravity.END
+                else -> Gravity.TOP or Gravity.END
             }
-            if (location == "TOP" || location == "TOP_RIGHT" || location == "BOTTOM") y = dp(18)
-            if (location == "LEFT" || location == "RIGHT" || location == "TOP_RIGHT") x = dp(2)
+            if (location == "TOP" || location == "TOP_RIGHT" || location == "BOTTOM") y = dp(28)
+            if (location == "LEFT" || location == "RIGHT" || location == "TOP_RIGHT") x = dp(0)
         }
-        edgeHandle = handle
-        windowManager.addView(handle, params)
+        edgeHandle = container
+        try {
+            windowManager.addView(container, params)
+        } catch (error: Exception) {
+            edgeHandle = null
+            android.util.Log.e("LiquidGlassCC", "Could not attach swipe handle", error)
+        }
     }
 
     private fun showOverlay() {
