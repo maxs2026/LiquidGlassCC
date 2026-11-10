@@ -100,7 +100,14 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
                     }
                     true
                 }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> true
+                MotionEvent.ACTION_UP -> {
+                    // A tap on the strip opens Control Center; a downward drag opens it too.
+                    if (!swipeTriggered && abs(event.rawY - downY) < dp(12)) {
+                        service.startService(Intent(service, OverlayService::class.java).setAction(OverlayService.ACTION_SHOW))
+                    }
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> true
                 else -> true
             }
         }
