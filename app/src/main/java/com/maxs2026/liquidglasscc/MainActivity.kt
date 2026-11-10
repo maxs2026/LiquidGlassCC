@@ -725,7 +725,7 @@ private fun CustomStatusSettingsScreen(onBack: () -> Unit) {
                         Text("Enable iOS-style status strip", color = Color.Black, fontSize = 16.sp)
                         Text("Requires LiquidGlass accessibility service", color = Color.Gray, fontSize = 12.sp)
                     }
-                    Switch(enabled, { enabled = it; saveAndRefresh() })
+                    Switch(enabled, { enabled = it; saveAndRefresh(); if (it && !isLiquidGlassAccessibilityEnabled(context)) openSettings(context, Settings.ACTION_ACCESSIBILITY_SETTINGS) })
                 }
             }
             Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
