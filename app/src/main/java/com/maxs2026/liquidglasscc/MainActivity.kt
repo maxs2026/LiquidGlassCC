@@ -606,7 +606,7 @@ private fun AppearanceSettingsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
     var location by remember { mutableStateOf(prefs.getString(OverlayService.KEY_LOCATION, "TOP_RIGHT") ?: "TOP_RIGHT") }
-    var edgeWidth by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_WIDTH, 24).toFloat()) }
+    var edgeWidth by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_WIDTH, 120).toFloat()) }
     var edgeHeight by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HEIGHT, 220).toFloat()) }
     var hue by remember { mutableFloatStateOf(prefs.getInt(OverlayService.KEY_HUE, 210).toFloat()) }
     MaterialTheme(colorScheme = lightColorScheme()) {
@@ -637,7 +637,7 @@ private fun AppearanceSettingsScreen(onBack: () -> Unit) {
             Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Width · ${edgeWidth.toInt()} dp", color = Color.Gray)
-                    Slider(value = edgeWidth, onValueChange = { edgeWidth = it; prefs.edit().putInt(OverlayService.KEY_WIDTH, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 12f..64f)
+                    Slider(value = edgeWidth, onValueChange = { edgeWidth = it; prefs.edit().putInt(OverlayService.KEY_WIDTH, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 64f..180f)
                     Divider()
                     Text("Height · ${edgeHeight.toInt()} dp", color = Color.Gray)
                     Slider(value = edgeHeight, onValueChange = { edgeHeight = it; prefs.edit().putInt(OverlayService.KEY_HEIGHT, it.toInt()).apply() }, onValueChangeFinished = { refreshOverlayService(context) }, valueRange = 120f..420f)
