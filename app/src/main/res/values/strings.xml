@@ -1,2 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources><string name="app_name">LiquidGlass CC</string></resources>
+<resources><string name="app_name">LiquidGlass CC</string>    <string name="accessibility_service_description">Allows LiquidGlass CC to be enabled in Android Accessibility settings. It does not read screen content.</string>
+</resources>
