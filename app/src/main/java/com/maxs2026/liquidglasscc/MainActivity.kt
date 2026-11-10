@@ -486,7 +486,8 @@ private fun AppSettingsScreen() {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
     var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", false)) }
-    var showAppearance by remember { mutableStateOf(false) }\n    var showStatusBar by remember { mutableStateOf(false) }
+    var showAppearance by remember { mutableStateOf(false) }
+    var showStatusBar by remember { mutableStateOf(false) }
     var overlayGranted by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
     var writeGranted by remember { mutableStateOf(Settings.System.canWrite(context)) }
     var notificationAccessGranted by remember { mutableStateOf(isNotificationListenerEnabled(context)) }
@@ -565,7 +566,8 @@ private fun AppSettingsScreen() {
                     Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
                         Column {
                             GeneralSettingRow(Icons.Default.WaterDrop, "Appearance") { showAppearance = true }
-                            GeneralSettingRow(Icons.Default.Settings, "Customize Controls") { showAppearance = true }\n                            GeneralSettingRow(Icons.Default.PhoneAndroid, "Custom Status Bar") { showStatusBar = true }
+                            GeneralSettingRow(Icons.Default.Settings, "Customize Controls") { showAppearance = true }
+                            GeneralSettingRow(Icons.Default.PhoneAndroid, "Custom Status Bar") { showStatusBar = true }
                         }
                     }
                 }
