@@ -52,6 +52,10 @@ class OverlayService : LifecycleService() {
                 hideOverlay()
                 showEdgeHandle()
             }
+            ACTION_REFRESH_SETTINGS -> {
+                removeEdgeHandle()
+                showEdgeHandle()
+            }
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -77,7 +81,7 @@ class OverlayService : LifecycleService() {
                     MotionEvent.ACTION_UP -> {
                         val deltaY = event.rawY - downY
                         val deltaX = abs(event.rawX - downX)
-                        if (deltaY >= dp(64) && deltaY > deltaX * 1.15f) showOverlay()
+                        if (deltaY >= dp(getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_SWIPE, 64)) && deltaY > deltaX * 1.15f) showOverlay()
                         true
                     }
                     MotionEvent.ACTION_CANCEL -> true
@@ -86,7 +90,7 @@ class OverlayService : LifecycleService() {
             }
         }
         val params = WindowManager.LayoutParams(
-            dp(24),
+            dp(getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_WIDTH, 24)),
             dp(142),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -157,6 +161,10 @@ class OverlayService : LifecycleService() {
     companion object {
         const val ACTION_SHOW = "com.maxs2026.liquidglasscc.action.SHOW_OVERLAY"
         const val ACTION_HIDE = "com.maxs2026.liquidglasscc.action.HIDE_OVERLAY"
+        const val ACTION_REFRESH_SETTINGS = "com.maxs2026.liquidglasscc.action.REFRESH_SETTINGS"
+        const val PREFS = "liquidglass_gesture_settings"
+        const val KEY_WIDTH = "edge_width_dp"
+        const val KEY_SWIPE = "swipe_distance_dp"
         private const val CHANNEL_ID = "liquidglass_overlay"
         private const val NOTIFICATION_ID = 2601
     }
