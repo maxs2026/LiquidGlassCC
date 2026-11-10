@@ -139,7 +139,7 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
     private fun dp(v: Int) = (v * service.resources.displayMetrics.density).toInt()
 
     companion object {
-        const val KEY_ENABLED = "custom_status_enabled"
+        const val ACTION_REFRESH = "com.maxs2026.liquidglasscc.action.REFRESH_STATUS_BAR"\n        const val KEY_ENABLED = "custom_status_enabled"
         const val KEY_BAR_HEIGHT = "custom_status_height"
         const val KEY_BAR_ALPHA = "custom_status_alpha"
         const val KEY_BAR_TOP = "custom_status_top"
