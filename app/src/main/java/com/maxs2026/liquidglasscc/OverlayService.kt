@@ -63,7 +63,7 @@ class OverlayService : LifecycleService() {
     private fun showEdgeHandle() {
         if (edgeHandle != null || overlayView != null) return
         val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
-        val location = prefs.getString(KEY_LOCATION, "RIGHT") ?: "RIGHT"
+        val location = prefs.getString(KEY_LOCATION, "TOP_RIGHT") ?: "TOP_RIGHT"
         val hue = prefs.getInt(KEY_HUE, 210).toFloat()
         val rgb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.45f, 1f))
         val handle = View(this).apply {
@@ -87,6 +87,7 @@ class OverlayService : LifecycleService() {
                         val deltaY = event.rawY - downY
                         val threshold = dp(prefs.getInt(KEY_SWIPE, 64))
                         val triggered = when (location) {
+                            "TOP_RIGHT" -> deltaY >= threshold && deltaY > abs(deltaX) * 1.15f
                             "TOP" -> deltaY >= threshold && deltaY > abs(deltaX) * 1.15f
                             "BOTTOM" -> -deltaY >= threshold && -deltaY > abs(deltaX) * 1.15f
                             "LEFT" -> deltaX >= threshold && deltaX > abs(deltaY) * 1.15f
@@ -113,13 +114,14 @@ class OverlayService : LifecycleService() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = when (location) {
+                "TOP_RIGHT" -> Gravity.TOP or Gravity.END
                 "TOP" -> Gravity.TOP or Gravity.CENTER_HORIZONTAL
                 "BOTTOM" -> Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
                 "LEFT" -> Gravity.CENTER_VERTICAL or Gravity.START
                 else -> Gravity.CENTER_VERTICAL or Gravity.END
             }
-            if (location == "TOP" || location == "BOTTOM") y = dp(18)
-            if (location == "LEFT" || location == "RIGHT") x = dp(2)
+            if (location == "TOP" || location == "TOP_RIGHT" || location == "BOTTOM") y = dp(18)
+            if (location == "LEFT" || location == "RIGHT" || location == "TOP_RIGHT") x = dp(2)
         }
         edgeHandle = handle
         windowManager.addView(handle, params)
