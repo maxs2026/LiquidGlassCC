@@ -7,6 +7,7 @@ import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.net.Uri
 import android.os.BatteryManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity() {
                 android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
                 android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             )
-        setContent { IOSControlCenter() }
+        setContent { IOSControlCenter(isOverlay = false) }
     }
 }
 
@@ -69,7 +70,7 @@ private val blueGlass = Color(0xFF42A5FF)
 private val panelShape = RoundedCornerShape(30.dp)
 
 @Composable
-private fun IOSControlCenter() {
+private fun IOSControlCenter(isOverlay: Boolean) {
     val ctx = LocalContext.current
     val audio = remember { ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     var brightness by remember { mutableFloatStateOf(readBrightness(ctx)) }
@@ -78,24 +79,19 @@ private fun IOSControlCenter() {
     var flashlightOn by remember { mutableStateOf(false) }
     var askedPermission by remember { mutableStateOf(false) }
     val batteryPercent = readBattery(ctx)
-    val flashlightPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) flashlightOn = setTorch(ctx, true)
-    }
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        askedPermission = false
-        if (Settings.System.canWrite(ctx)) brightness = readBrightness(ctx)
-    }
 
     MaterialTheme(colorScheme = darkColorScheme()) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val compact = maxHeight < 760.dp
             val contentWidth = maxWidth * 0.82f
             val panelSize = (contentWidth - 12.dp) / 2
-            Box(Modifier.fillMaxSize().background(
-                Brush.linearGradient(listOf(Color(0xFF090B12), Color(0xFF252B37), Color(0xFF111722), Color(0xFF080A10)))
-            ))
-            Box(Modifier.size(260.dp).offset(x = (-90).dp, y = 120.dp).blur(75.dp).background(Color(0xFF356C9C).copy(alpha = 0.34f), CircleShape))
-            Box(Modifier.size(240.dp).align(Alignment.BottomEnd).offset(x = 80.dp, y = (-170).dp).blur(80.dp).background(Color(0xFF6A3D75).copy(alpha = 0.24f), CircleShape))
+            if (!isOverlay) {
+                Box(Modifier.fillMaxSize().background(
+                    Brush.linearGradient(listOf(Color(0xFF090B12), Color(0xFF252B37), Color(0xFF111722), Color(0xFF080A10)))
+                ))
+                Box(Modifier.size(260.dp).offset(x = (-90).dp, y = 120.dp).blur(75.dp).background(Color(0xFF356C9C).copy(alpha = 0.34f), CircleShape))
+                Box(Modifier.size(240.dp).align(Alignment.BottomEnd).offset(x = 80.dp, y = (-170).dp).blur(80.dp).background(Color(0xFF6A3D75).copy(alpha = 0.24f), CircleShape))
+            }
 
             Column(
                 Modifier.width(contentWidth).fillMaxHeight().align(Alignment.TopCenter)
@@ -104,9 +100,21 @@ private fun IOSControlCenter() {
                 verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 15.dp)
             ) {
                 Row(Modifier.fillMaxWidth().height(46.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RoundAction(Icons.Default.Add, 39.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
+                    RoundAction(Icons.Default.Add, 39.dp) {
+                        if (isOverlay) {
+                            ctx.stopService(Intent(ctx, OverlayService::class.java))
+                        } else if (!Settings.canDrawOverlays(ctx)) {
+                            ctx.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        } else {
+                            val overlayIntent = Intent(ctx, OverlayService::class.java)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) ctx.startForegroundService(overlayIntent) else ctx.startService(overlayIntent)
+                        }
+                    }
                     Spacer(Modifier.weight(1f))
-                    RoundAction(Icons.Default.PowerSettingsNew, 39.dp) { openSettings(ctx, Settings.ACTION_SETTINGS) }
+                    RoundAction(Icons.Default.PowerSettingsNew, 39.dp) {
+                        if (isOverlay) ctx.stopService(Intent(ctx, OverlayService::class.java))
+                        else openSettings(ctx, Settings.ACTION_SETTINGS)
+                    }
                 }
 
                 Row(Modifier.fillMaxWidth().height(panelSize), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -192,7 +200,8 @@ private fun IOSControlCenter() {
                             Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
                         } else if (!askedPermission) {
                             askedPermission = true
-                            permissionLauncher.launch(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + ctx.packageName)))
+                            if (isOverlay) ctx.stopService(Intent(ctx, OverlayService::class.java))
+                            ctx.startActivity(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                         }
                     }
                     VerticalSystemSlider(volume, blueGlass, whiteGlass, Icons.Default.VolumeUp, Modifier.width(66.dp).fillMaxHeight()) { value ->
@@ -205,7 +214,10 @@ private fun IOSControlCenter() {
                     ToolCircle(Icons.Default.FlashlightOn, Modifier.weight(1f), active = flashlightOn) {
                         if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             flashlightOn = setTorch(ctx, !flashlightOn)
-                        } else flashlightPermission.launch(android.Manifest.permission.CAMERA)
+                        } else {
+                            if (isOverlay) ctx.stopService(Intent(ctx, OverlayService::class.java))
+                            ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        }
                     }
                     ToolCircle(Icons.Default.CameraAlt, Modifier.weight(1f)) { openCamera(ctx) }
                     ToolCircle(Icons.Default.ScreenShare, Modifier.weight(1f), accent = Color(0xFF54C98B)) {
