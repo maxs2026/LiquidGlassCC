@@ -94,7 +94,11 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> { downY = event.rawY; swipeTriggered = false; true }
                 MotionEvent.ACTION_MOVE -> {
-                    if (!swipeTriggered && event.rawY - downY > dp(prefs.getInt(OverlayService.KEY_SWIPE, 64).coerceIn(24, 160))) {\n                        swipeTriggered = true\n                        service.startService(Intent(service, OverlayService::class.java).setAction(OverlayService.ACTION_SHOW))\n                    }\n                    true
+                    if (!swipeTriggered && event.rawY - downY > dp(prefs.getInt(OverlayService.KEY_SWIPE, 64).coerceIn(24, 160))) {
+                        swipeTriggered = true
+                        service.startService(Intent(service, OverlayService::class.java).setAction(OverlayService.ACTION_SHOW))
+                    }
+                    true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> true
                 else -> true
