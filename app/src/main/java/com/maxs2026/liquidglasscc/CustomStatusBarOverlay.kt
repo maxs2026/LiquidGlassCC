@@ -35,7 +35,7 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
     private var clock: TextView? = null
     private var battery: TextView? = null
     private val handler = Handler(Looper.getMainLooper())
-    private var downY = 0f
+    private var downY = 0f\n    private var swipeTriggered = false
 
     private val refresh = object : Runnable {
         override fun run() {
@@ -91,7 +91,7 @@ class CustomStatusBarOverlay(private val service: AccessibilityService) {
 
         bar.setOnTouchListener { _, event ->
             when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> { downY = event.rawY; true }
+                MotionEvent.ACTION_DOWN -> { downY = event.rawY; swipeTriggered = false; true }
                 MotionEvent.ACTION_MOVE -> {
                     if (event.rawY - downY > dp(prefs.getInt(OverlayService.KEY_SWIPE, 64).coerceIn(24, 160))) {
                         service.startService(Intent(service, OverlayService::class.java).setAction(OverlayService.ACTION_SHOW))
