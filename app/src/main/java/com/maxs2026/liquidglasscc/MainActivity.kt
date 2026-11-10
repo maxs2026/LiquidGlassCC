@@ -78,6 +78,9 @@ internal fun IOSControlCenter(isOverlay: Boolean) {
     var airplane by remember { mutableStateOf(false) }
     var flashlightOn by remember { mutableStateOf(false) }
     var askedPermission by remember { mutableStateOf(false) }
+    val gesturePrefs = remember { ctx.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
+    var edgeWidth by remember { mutableFloatStateOf(gesturePrefs.getInt(OverlayService.KEY_WIDTH, 24).toFloat()) }
+    var swipeDistance by remember { mutableFloatStateOf(gesturePrefs.getInt(OverlayService.KEY_SWIPE, 64).toFloat()) }
     val batteryPercent = readBattery(ctx)
 
     MaterialTheme(colorScheme = darkColorScheme()) {
@@ -225,6 +228,46 @@ internal fun IOSControlCenter(isOverlay: Boolean) {
                     }
                     ToolCircle(Icons.Default.QrCodeScanner, Modifier.weight(1f), accent = Color(0xFFEC719A)) {
                         openSettings(ctx, Settings.ACTION_SETTINGS)
+                    }
+                }
+
+                if (!isOverlay) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.White.copy(alpha = 0.10f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
+                    ) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Swipe Gesture Settings", color = whiteGlass, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Edge handle width: ${edgeWidth.toInt()} dp", color = mutedGlass, fontSize = 12.sp)
+                            Slider(
+                                value = edgeWidth,
+                                onValueChange = {
+                                    edgeWidth = it
+                                    gesturePrefs.edit().putInt(OverlayService.KEY_WIDTH, it.toInt()).apply()
+                                },
+                                onValueChangeFinished = {
+                                    val refresh = Intent(ctx, OverlayService::class.java).setAction(OverlayService.ACTION_REFRESH_SETTINGS)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) ctx.startForegroundService(refresh) else ctx.startService(refresh)
+                                },
+                                valueRange = 12f..64f
+                            )
+                            Text("Swipe-down distance: ${swipeDistance.toInt()} dp", color = mutedGlass, fontSize = 12.sp)
+                            Slider(
+                                value = swipeDistance,
+                                onValueChange = {
+                                    swipeDistance = it
+                                    gesturePrefs.edit().putInt(OverlayService.KEY_SWIPE, it.toInt()).apply()
+                                },
+                                onValueChangeFinished = {
+                                    val refresh = Intent(ctx, OverlayService::class.java).setAction(OverlayService.ACTION_REFRESH_SETTINGS)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) ctx.startForegroundService(refresh) else ctx.startService(refresh)
+                                },
+                                valueRange = 24f..160f
+                            )
+                            Text("Changes are saved automatically.", color = mutedGlass.copy(alpha = 0.70f), fontSize = 10.sp)
+                        }
                     }
                 }
 
