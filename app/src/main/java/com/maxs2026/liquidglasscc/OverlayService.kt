@@ -65,26 +65,27 @@ class OverlayService : LifecycleService() {
         val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
         val location = prefs.getString(KEY_LOCATION, "RIGHT") ?: "RIGHT"
         val hue = prefs.getInt(KEY_HUE, 210).toFloat()
-            val rgb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.45f, 1f))
+        val rgb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.45f, 1f))
+        val handle = View(this).apply {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dp(18).toFloat()
                 setColor(android.graphics.Color.argb(72, android.graphics.Color.red(rgb), android.graphics.Color.green(rgb), android.graphics.Color.blue(rgb)))
                 setStroke(dp(1), android.graphics.Color.argb(125, android.graphics.Color.red(rgb), android.graphics.Color.green(rgb), android.graphics.Color.blue(rgb)))
             }
-            var downY = 0f
             var downX = 0f
+            var downY = 0f
             setOnTouchListener { _, event ->
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
-                        downY = event.rawY
                         downX = event.rawX
+                        downY = event.rawY
                         true
                     }
                     MotionEvent.ACTION_UP -> {
-                        val deltaY = event.rawY - downY
                         val deltaX = event.rawX - downX
-                        val threshold = dp(getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_SWIPE, 64))
+                        val deltaY = event.rawY - downY
+                        val threshold = dp(prefs.getInt(KEY_SWIPE, 64))
                         val triggered = when (location) {
                             "TOP" -> deltaY >= threshold && deltaY > abs(deltaX) * 1.15f
                             "BOTTOM" -> -deltaY >= threshold && -deltaY > abs(deltaX) * 1.15f
@@ -99,7 +100,6 @@ class OverlayService : LifecycleService() {
                 }
             }
         }
-        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
         val edgeWidth = dp(prefs.getInt(KEY_WIDTH, 24))
         val edgeHeight = dp(prefs.getInt(KEY_HEIGHT, 142))
         val horizontal = location == "TOP" || location == "BOTTOM"
@@ -118,10 +118,8 @@ class OverlayService : LifecycleService() {
                 "LEFT" -> Gravity.CENTER_VERTICAL or Gravity.START
                 else -> Gravity.CENTER_VERTICAL or Gravity.END
             }
-            if (location == "TOP") y = dp(18)
-            if (location == "BOTTOM") y = dp(18)
-            if (location == "LEFT") x = dp(2)
-            if (location == "RIGHT") x = dp(2)
+            if (location == "TOP" || location == "BOTTOM") y = dp(18)
+            if (location == "LEFT" || location == "RIGHT") x = dp(2)
         }
         edgeHandle = handle
         windowManager.addView(handle, params)
