@@ -102,17 +102,17 @@ internal fun IOSControlCenter(isOverlay: Boolean) {
                 Row(Modifier.fillMaxWidth().height(46.dp), verticalAlignment = Alignment.CenterVertically) {
                     RoundAction(Icons.Default.Add, 39.dp) {
                         if (isOverlay) {
-                            ctx.stopService(Intent(ctx, OverlayService::class.java))
+                            ctx.startService(Intent(ctx, OverlayService::class.java).setAction(OverlayService.ACTION_HIDE))
                         } else if (!Settings.canDrawOverlays(ctx)) {
                             ctx.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                         } else {
-                            val overlayIntent = Intent(ctx, OverlayService::class.java)
+                            val overlayIntent = Intent(ctx, OverlayService::class.java).setAction(OverlayService.ACTION_SHOW)
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) ctx.startForegroundService(overlayIntent) else ctx.startService(overlayIntent)
                         }
                     }
                     Spacer(Modifier.weight(1f))
                     RoundAction(Icons.Default.PowerSettingsNew, 39.dp) {
-                        if (isOverlay) ctx.stopService(Intent(ctx, OverlayService::class.java))
+                        if (isOverlay) ctx.startService(Intent(ctx, OverlayService::class.java).setAction(OverlayService.ACTION_HIDE))
                         else openSettings(ctx, Settings.ACTION_SETTINGS)
                     }
                 }
@@ -200,7 +200,7 @@ internal fun IOSControlCenter(isOverlay: Boolean) {
                             Settings.System.putInt(ctx.contentResolver, Settings.System.SCREEN_BRIGHTNESS, (value * 255).toInt().coerceIn(1, 255))
                         } else if (!askedPermission) {
                             askedPermission = true
-                            if (isOverlay) ctx.stopService(Intent(ctx, OverlayService::class.java))
+                            if (isOverlay) ctx.startService(Intent(ctx, OverlayService::class.java).setAction(OverlayService.ACTION_HIDE))
                             ctx.startActivity(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                         }
                     }
@@ -215,7 +215,7 @@ internal fun IOSControlCenter(isOverlay: Boolean) {
                         if (ctx.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             flashlightOn = setTorch(ctx, !flashlightOn)
                         } else {
-                            if (isOverlay) ctx.stopService(Intent(ctx, OverlayService::class.java))
+                            if (isOverlay) ctx.startService(Intent(ctx, OverlayService::class.java).setAction(OverlayService.ACTION_HIDE))
                             ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                         }
                     }
