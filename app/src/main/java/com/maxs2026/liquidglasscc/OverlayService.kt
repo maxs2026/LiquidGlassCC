@@ -90,24 +90,42 @@ class OverlayService : LifecycleService() {
 
         var downX = 0f
         var downY = 0f
+        var gestureTriggered = false
+
+        fun crossedSwipeThreshold(event: MotionEvent): Boolean {
+            val dx = event.rawX - downX
+            val dy = event.rawY - downY
+            val threshold = dp(prefs.getInt(KEY_SWIPE, 64).coerceIn(24, 160))
+            return when (location) {
+                "BOTTOM" -> -dy >= threshold && -dy > abs(dx) * 1.10f
+                "LEFT" -> dx >= threshold && dx > abs(dy) * 1.10f
+                "RIGHT" -> -dx >= threshold && -dx > abs(dy) * 1.10f
+                else -> dy >= threshold && dy > abs(dx) * 1.10f
+            }
+        }
+
         container.setOnTouchListener { _, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     downX = event.rawX
                     downY = event.rawY
+                    gestureTriggered = false
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    // Open as soon as the drag crosses the threshold. Waiting for
+                    // ACTION_UP can lose the gesture when Android cancels the touch.
+                    if (!gestureTriggered && crossedSwipeThreshold(event)) {
+                        gestureTriggered = true
+                        container.post { showOverlay() }
+                    }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    val dx = event.rawX - downX
-                    val dy = event.rawY - downY
-                    val threshold = dp(prefs.getInt(KEY_SWIPE, 64).coerceIn(24, 160))
-                    val triggered = when (location) {
-                        "BOTTOM" -> -dy >= threshold && -dy > abs(dx) * 1.10f
-                        "LEFT" -> dx >= threshold && dx > abs(dy) * 1.10f
-                        "RIGHT" -> -dx >= threshold && -dx > abs(dy) * 1.10f
-                        else -> dy >= threshold && dy > abs(dx) * 1.10f
+                    if (!gestureTriggered && crossedSwipeThreshold(event)) {
+                        gestureTriggered = true
+                        container.post { showOverlay() }
                     }
-                    if (triggered) showOverlay()
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> true
