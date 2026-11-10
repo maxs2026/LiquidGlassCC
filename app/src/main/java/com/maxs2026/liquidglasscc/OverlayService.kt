@@ -67,8 +67,9 @@ class OverlayService : LifecycleService() {
         val location = prefs.getString(KEY_LOCATION, "TOP_RIGHT") ?: "TOP_RIGHT"
         val hue = prefs.getInt(KEY_HUE, 210).toFloat()
         val rgb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.45f, 1f))
-        val handleWidth = dp(prefs.getInt(KEY_WIDTH, 64).coerceIn(32, 120))
-        val handleHeight = dp(prefs.getInt(KEY_HEIGHT, 220).coerceIn(120, 420))
+        // Keep a generous touch target so the gesture is not missed on narrow screens.
+        val handleWidth = dp(prefs.getInt(KEY_WIDTH, 120).coerceIn(64, 180))
+        val handleHeight = dp(prefs.getInt(KEY_HEIGHT, 280).coerceIn(160, 480))
         val horizontal = location == "TOP" || location == "BOTTOM"
 
         val container = FrameLayout(this).apply {
@@ -164,30 +165,41 @@ class OverlayService : LifecycleService() {
     private fun showOverlay() {
         if (overlayView != null) return
         removeEdgeHandle()
-        val composeView = ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent { IOSControlCenter(isOverlay = true) }
-        }
-        composeView.setViewTreeLifecycleOwner(this)
-        val windowFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            windowFlags,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            dimAmount = 0f
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && windowManager.isCrossWindowBlurEnabled) {
-                setBlurBehindRadius(48)
-                flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+        var composeView: ComposeView? = null
+        try {
+            composeView = ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                setContent { IOSControlCenter(isOverlay = true) }
             }
+            composeView.setViewTreeLifecycleOwner(this)
+            val windowFlags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                windowFlags,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = Gravity.TOP or Gravity.START
+                dimAmount = 0f
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && windowManager.isCrossWindowBlurEnabled) {
+                    setBlurBehindRadius(48)
+                    flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+                }
+            }
+            windowManager.addView(composeView, params)
+            overlayView = composeView
+        } catch (error: Exception) {
+            android.util.Log.e("LiquidGlassCC", "Failed to show Control Center overlay", error)
+            try {
+                composeView?.let { windowManager.removeView(it) }
+            } catch (_: Exception) { }
+            overlayView = null
+            showEdgeHandle()
         }
-        overlayView = composeView
-        windowManager.addView(composeView, params)
     }
 
     private fun hideOverlay() {
