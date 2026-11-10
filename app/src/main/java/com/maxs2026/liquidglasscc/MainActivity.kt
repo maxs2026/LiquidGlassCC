@@ -486,7 +486,7 @@ private fun AppSettingsScreen() {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
     var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", false)) }
-    var showAppearance by remember { mutableStateOf(false) }
+    var showAppearance by remember { mutableStateOf(false) }\n    var showStatusBar by remember { mutableStateOf(false) }
     var overlayGranted by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
     var writeGranted by remember { mutableStateOf(Settings.System.canWrite(context)) }
     var notificationAccessGranted by remember { mutableStateOf(isNotificationListenerEnabled(context)) }
@@ -565,7 +565,7 @@ private fun AppSettingsScreen() {
                     Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
                         Column {
                             GeneralSettingRow(Icons.Default.WaterDrop, "Appearance") { showAppearance = true }
-                            GeneralSettingRow(Icons.Default.Settings, "Customize Controls") { showAppearance = true }
+                            GeneralSettingRow(Icons.Default.Settings, "Customize Controls") { showAppearance = true }\n                            GeneralSettingRow(Icons.Default.PhoneAndroid, "Custom Status Bar") { showStatusBar = true }
                         }
                     }
                 }
@@ -681,3 +681,87 @@ private fun isNotificationListenerEnabled(context: Context): Boolean {
 
 private fun prefsEnabled(context: Context): Boolean =
     context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE).getBoolean("enabled", false)
+
+@Composable
+private fun CustomStatusSettingsScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(OverlayService.PREFS, Context.MODE_PRIVATE) }
+    var enabled by remember { mutableStateOf(prefs.getBoolean(CustomStatusBarOverlay.KEY_ENABLED, false)) }
+    var height by remember { mutableFloatStateOf(prefs.getInt(CustomStatusBarOverlay.KEY_BAR_HEIGHT, 28).toFloat()) }
+    var transparency by remember { mutableFloatStateOf(prefs.getInt(CustomStatusBarOverlay.KEY_BAR_ALPHA, 0).toFloat()) }
+    var topOffset by remember { mutableFloatStateOf(prefs.getInt(CustomStatusBarOverlay.KEY_BAR_TOP, 0).toFloat()) }
+    var use24Hour by remember { mutableStateOf(prefs.getBoolean(CustomStatusBarOverlay.KEY_24H, false)) }
+    var notifications by remember { mutableStateOf(prefs.getBoolean(CustomStatusBarOverlay.KEY_NOTIFICATIONS, true)) }
+    var signal by remember { mutableStateOf(prefs.getBoolean(CustomStatusBarOverlay.KEY_SIGNAL, true)) }
+    var wifi by remember { mutableStateOf(prefs.getBoolean(CustomStatusBarOverlay.KEY_WIFI, true)) }
+    var battery by remember { mutableStateOf(prefs.getBoolean(CustomStatusBarOverlay.KEY_BATTERY, true)) }
+    fun saveAndRefresh() {
+        prefs.edit().putBoolean(CustomStatusBarOverlay.KEY_ENABLED, enabled)
+            .putInt(CustomStatusBarOverlay.KEY_BAR_HEIGHT, height.toInt())
+            .putInt(CustomStatusBarOverlay.KEY_BAR_ALPHA, transparency.toInt())
+            .putInt(CustomStatusBarOverlay.KEY_BAR_TOP, topOffset.toInt())
+            .putBoolean(CustomStatusBarOverlay.KEY_24H, use24Hour)
+            .putBoolean(CustomStatusBarOverlay.KEY_NOTIFICATIONS, notifications)
+            .putBoolean(CustomStatusBarOverlay.KEY_SIGNAL, signal)
+            .putBoolean(CustomStatusBarOverlay.KEY_WIFI, wifi)
+            .putBoolean(CustomStatusBarOverlay.KEY_BATTERY, battery).apply()
+        if (isLiquidGlassAccessibilityEnabled(context)) {
+            context.startService(Intent(context, LiquidGlassAccessibilityService::class.java))
+        } else if (enabled) {
+            openSettings(context, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        }
+    }
+    MaterialTheme(colorScheme = lightColorScheme()) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null, tint = Color(0xFF1684EA)) }
+                Text("Custom Status Bar", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Enable iOS-style status strip", color = Color.Black, fontSize = 16.sp)
+                        Text("Requires LiquidGlass accessibility service", color = Color.Gray, fontSize = 12.sp)
+                    }
+                    Switch(enabled, { enabled = it; saveAndRefresh() })
+                }
+            }
+            Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Height · ${height.toInt()} dp", color = Color.Gray)
+                    Slider(height, { height = it; saveAndRefresh() }, valueRange = 20f..44f)
+                    Text("Transparency · ${transparency.toInt()}%", color = Color.Gray)
+                    Slider(transparency, { transparency = it; saveAndRefresh() }, valueRange = 0f..100f)
+                    Text("Top offset · ${topOffset.toInt()} dp", color = Color.Gray)
+                    Slider(topOffset, { topOffset = it; saveAndRefresh() }, valueRange = 0f..16f)
+                }
+            }
+            Surface(shape = RoundedCornerShape(18.dp), color = Color.White) {
+                Column(Modifier.padding(horizontal = 16.dp)) {
+                    SettingToggle("24-hour clock", use24Hour) { use24Hour = it; saveAndRefresh() }
+                    Divider()
+                    SettingToggle("Notification indicators", notifications) { notifications = it; saveAndRefresh() }
+                    Divider()
+                    SettingToggle("Cellular signal", signal) { signal = it; saveAndRefresh() }
+                    Divider()
+                    SettingToggle("Wi-Fi indicator", wifi) { wifi = it; saveAndRefresh() }
+                    Divider()
+                    SettingToggle("Battery indicator", battery) { battery = it; saveAndRefresh() }
+                }
+            }
+            Text("Swipe down on the status strip to open Control Center. Android's real status bar remains unchanged underneath.", color = Color.Gray, fontSize = 12.sp)
+            Surface(shape = RoundedCornerShape(16.dp), color = Color(0xFF1677E8), modifier = Modifier.fillMaxWidth().clickable { openSettings(context, Settings.ACTION_ACCESSIBILITY_SETTINGS) }) {
+                Text("Open Accessibility Settings", color = Color.White, modifier = Modifier.padding(16.dp), fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingToggle(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, color = Color.Black, modifier = Modifier.weight(1f))
+        Switch(checked, onChange)
+    }
+}
+
