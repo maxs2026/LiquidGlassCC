@@ -62,10 +62,9 @@ class OverlayService : LifecycleService() {
 
     private fun showEdgeHandle() {
         if (edgeHandle != null || overlayView != null) return
-        val handle = View(this).apply {
-            val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
-            val location = prefs.getString(KEY_LOCATION, "RIGHT") ?: "RIGHT"
-            val hue = prefs.getInt(KEY_HUE, 210).toFloat()
+        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
+        val location = prefs.getString(KEY_LOCATION, "RIGHT") ?: "RIGHT"
+        val hue = prefs.getInt(KEY_HUE, 210).toFloat()
             val rgb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.45f, 1f))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
